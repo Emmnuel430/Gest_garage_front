@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import ToastMessage from "../../components/Layout/ToastMessage";
 
 const MecanicienUpdate = ({ mecanicien, onClose, onUpdate }) => {
   const [updatedMecanicien, setUpdatedMecanicien] = useState({ ...mecanicien });
-  const [garages, setGarages] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setloading] = useState(false);
 
@@ -18,26 +17,6 @@ const MecanicienUpdate = ({ mecanicien, onClose, onUpdate }) => {
       await onUpdate(updatedMecanicien);
     } finally {
       setloading(false); // 👉 Fin envoi (succès ou échec)
-    }
-  };
-
-  useEffect(() => {
-    fetchGarages();
-  }, []);
-
-  const fetchGarages = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/liste_garage`
-      );
-      const data = await response.json();
-      if (response.ok) {
-        setGarages(data.garages);
-      } else {
-        setError(data.error || "Une erreur est survenue.");
-      }
-    } catch (error) {
-      setError("Une erreur inattendue s'est produite.");
     }
   };
 
@@ -129,23 +108,6 @@ const MecanicienUpdate = ({ mecanicien, onClose, onUpdate }) => {
           value={updatedMecanicien.contact_urgence}
           onChange={handleChange}
         />
-      </div>
-
-      <div className="mb-3">
-        <label className="form-label">Garage</label>
-        <select
-          className="form-control"
-          name="garage_id"
-          value={updatedMecanicien.garage_id}
-          onChange={handleChange}
-        >
-          <option value="">Sélectionner un garage</option>
-          {garages.map((garage) => (
-            <option key={garage.id} value={garage.id}>
-              {garage.nom}
-            </option>
-          ))}
-        </select>
       </div>
 
       <div className="text-end">

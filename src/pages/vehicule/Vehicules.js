@@ -199,8 +199,8 @@ const Vehicule = () => {
                 {selectedVehicule.immatriculation}
               </p>
               <p>
-                <strong>Client :</strong> {selectedVehicule.client_nom} (
-                {selectedVehicule.client_tel})
+                <strong>Client :</strong> {selectedVehicule.client_nom || "N/A"}{" "}
+                ({selectedVehicule.client_tel || "N/A"})
               </p>
               <p>
                 <strong>Marque / Modèle :</strong>{" "}

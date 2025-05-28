@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../../components/Layout/Layout";
 import Back from "../../components/Layout/Back";
@@ -16,33 +16,11 @@ const AddMecanicien = () => {
     experience: "",
     contact: "",
     contact_urgence: "",
-    garage_id: "",
   });
 
-  const [garages, setGarages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
-
-  useEffect(() => {
-    fetchGarages();
-  }, []);
-
-  const fetchGarages = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/liste_garage`
-      );
-      const data = await response.json();
-      if (response.ok) {
-        setGarages(data.garages);
-      } else {
-        setError(data.error || "Une erreur est survenue.");
-      }
-    } catch (error) {
-      setError("Une erreur inattendue s'est produite.");
-    }
-  };
 
   const handleShowModal = () => {
     if (!mecanicien.nom || !mecanicien.prenom || !mecanicien.type) {
@@ -69,8 +47,6 @@ const AddMecanicien = () => {
 
       const payload = {
         ...mecanicien,
-        garage_id:
-          mecanicien.garage_id === "" ? "" : Number(mecanicien.garage_id),
         user_id: userId,
       };
 
@@ -216,32 +192,6 @@ const AddMecanicien = () => {
           }
         />
         <br />
-
-        {mecanicien.type === "externe" && (
-          <>
-            <label className="form-label">Garage</label>
-            <select
-              name="garage_id"
-              id="garage_id"
-              className="form-control"
-              value={mecanicien.garage_id}
-              onChange={(e) =>
-                setMecanicien({
-                  ...mecanicien,
-                  garage_id: e.target.value,
-                })
-              }
-            >
-              <option value="">Sélectionner un garage</option>
-              {garages.map((garage) => (
-                <option key={garage.id} value={garage.id}>
-                  {garage.nom}
-                </option>
-              ))}
-            </select>
-            <br />
-          </>
-        )}
 
         <button
           onClick={handleShowModal}

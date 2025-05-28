@@ -27,10 +27,6 @@ import Mecaniciens from "./pages/mecano/Mecaniciens";
 import AddMecanicien from "./pages/mecano/AddMecanicien";
 import MecanicienUpdate from "./pages/mecano/MecanicienUpdate";
 // ----
-import Garages from "./pages/garage/Garages";
-import AddGarage from "./pages/garage/AddGarage";
-import GarageUpdate from "./pages/garage/GarageUpdate";
-// ----
 import Vehicules from "./pages/vehicule/Vehicules";
 // ----
 import Logs from "./pages/Logs";
@@ -173,30 +169,6 @@ const AppRoutes = () => {
             />
           }
         />
-        {/* ------------------------ */}
-        {/* Gestion des garages */}
-        <Route
-          path="/garages"
-          element={
-            <Protected Cmp={Garages} roles={["super_admin", "secretaire"]} />
-          }
-        />
-        <Route
-          path="/add/garage"
-          element={
-            <Protected Cmp={AddGarage} roles={["super_admin", "secretaire"]} />
-          }
-        />
-        <Route
-          path="/update/garage/:id"
-          element={
-            <Protected
-              Cmp={GarageUpdate}
-              roles={["super_admin", "secretaire"]}
-            />
-          }
-        />
-
         {/* ------------------------ */}
         {/* Archives véhicules */}
         <Route

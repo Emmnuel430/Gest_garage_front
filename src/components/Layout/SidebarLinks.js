@@ -199,12 +199,6 @@ const SidebarLinks = ({ user }) => {
                 <span className="text-body">Mécaniciens</span>
               </Link>
             )}
-            {hasRole(["super_admin", "secretaire"]) && (
-              <Link to="/garages" className="nav-link">
-                <i className="fa fa-warehouse me-2"></i>{" "}
-                <span className="text-body">Garages</span>
-              </Link>
-            )}
             {hasRole(["super_admin"]) && (
               <Link to="/utilisateurs" className="nav-link">
                 <i className="fa fa-user-friends me-2"></i>{" "}

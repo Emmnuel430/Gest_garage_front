@@ -194,7 +194,7 @@ const Mecaniciens = () => {
               onSearch={(query) => setSearchQuery(query)}
               delay={300}
             />
-            {/* Affichage de l'en-tête avec filtre et le bouton pour ajouter un garage */}
+            {/* Affichage de l'en-tête avec filtre et le bouton pour ajouter un mecanicien */}
             <HeaderWithFilter
               title="Mécaniciens"
               link="/add/mecanicien"
@@ -319,12 +319,6 @@ const Mecaniciens = () => {
                   ) : (
                     <span className="badge bg-info">Externe</span> || "N/A"
                   )}
-                </div>
-              </div>
-              <div className="row mb-2">
-                <div className="col-6 fw-bold">Garage :</div>
-                <div className="col-6">
-                  {selectedMecanicien.garage?.nom || "N/A"}
                 </div>
               </div>
 

@@ -182,8 +182,8 @@ const BilletsSortie = () => {
               </p>
               <p>
                 <strong>Client :</strong>{" "}
-                {selectedBilletSortie.reception.vehicule.client_nom} (
-                {selectedBilletSortie.reception.vehicule.client_tel})
+                {selectedBilletSortie.reception.vehicule.client_nom || "N/A"} (
+                {selectedBilletSortie.reception.vehicule.client_tel || "N/A"})
               </p>
               <p>
                 <strong>Véhicule :</strong>{" "}

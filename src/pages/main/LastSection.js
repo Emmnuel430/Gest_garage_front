@@ -210,7 +210,7 @@ const LastSection = () => {
                     ))
                 ) : (
                   <div className="text-center text-muted h-100 d-flex align-items-center justify-content-center">
-                    Tout baigne pour l'instant.
+                    Tout baigne pour l'instant. Personne ne doit.
                   </div>
                 )}
               </div>

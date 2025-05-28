@@ -48,8 +48,7 @@ const AddReception = () => {
     if (
       !vehicule.immatriculation ||
       !vehicule.marque ||
-      !vehicule.client_nom ||
-      !vehicule.client_tel ||
+      !vehicule.modele ||
       !motif_visite
     ) {
       setError("Tous les champs obligatoires doivent être remplis.");
@@ -179,7 +178,7 @@ const AddReception = () => {
         />
         <br />
 
-        <label className="form-label">Modèle</label>
+        <label className="form-label">Modèle *</label>
         <input
           type="text"
           className="form-control"
@@ -189,7 +188,7 @@ const AddReception = () => {
         />
         <br />
 
-        <label className="form-label">Nom du client *</label>
+        <label className="form-label">Nom du client</label>
         <input
           type="text"
           className="form-control"
@@ -201,7 +200,7 @@ const AddReception = () => {
         />
         <br />
 
-        <label className="form-label">Téléphone du client *</label>
+        <label className="form-label">Téléphone du client</label>
         <input
           type="number"
           className="form-control"
@@ -213,7 +212,7 @@ const AddReception = () => {
         />
         <br />
 
-        <label className="form-label">Mecanicien</label>
+        <label className="form-label">Mecanicien *</label>
         <Select
           className="bg-body"
           classNamePrefix="select"
@@ -254,8 +253,6 @@ const AddReception = () => {
             !vehicule.marque ||
             !vehicule.modele ||
             !vehicule.mecanicien_id ||
-            !vehicule.client_nom ||
-            !vehicule.client_tel ||
             !motif_visite
           }
           className="btn btn-primary w-100"
@@ -284,8 +281,12 @@ const AddReception = () => {
             <br />
             <strong>Modèle :</strong> {vehicule.modele || "-"}
             <br />
-            <strong>Client :</strong> {vehicule.client_nom} (
-            {vehicule.client_tel})<br />
+            {vehicule.client_nom && vehicule.client_tel && (
+              <>
+                <strong>Client :</strong> {vehicule.client_nom} (
+                {vehicule.client_tel})<br />
+              </>
+            )}
             <strong>Motif :</strong> {motif_visite}
           </div>
         }

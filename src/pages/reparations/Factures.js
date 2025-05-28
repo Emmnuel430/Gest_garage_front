@@ -235,8 +235,8 @@ const Factures = () => {
               </p>
               <p>
                 <strong>Client :</strong>{" "}
-                {selectedFacture.reception.vehicule.client_nom} (
-                {selectedFacture.reception.vehicule.client_tel})
+                {selectedFacture.reception.vehicule.client_nom || "N/A"} (
+                {selectedFacture.reception.vehicule.client_tel || "N/A"})
               </p>
               <p>
                 <strong>Véhicule :</strong>{" "}

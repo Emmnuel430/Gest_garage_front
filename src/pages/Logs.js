@@ -152,10 +152,10 @@ const Logs = () => {
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>User</th>
+                  <th>Fait par</th>
                   <th>Date</th>
                   <th>Action</th>
-                  <th>Table</th>
+                  <th>Concerne</th>
                   <th>Details</th>
                 </tr>
               </thead>
@@ -214,6 +214,7 @@ const Logs = () => {
               show={showDetailsModal}
               onHide={handleCloseDetailsModal}
               centered
+              size="lg"
             >
               <Modal.Header closeButton>
                 <Modal.Title>Détails du Log</Modal.Title>

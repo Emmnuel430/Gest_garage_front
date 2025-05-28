@@ -342,6 +342,15 @@ const Reparations = () => {
                 )}
               </p>
               <p>
+                <strong>Fin :</strong>{" "}
+                {selectedReparation.created_at === selectedReparation.updated_at
+                  ? "-"
+                  : format(
+                      new Date(selectedReparation.updated_at),
+                      "dd/MM/yyyy HH:mm:ss"
+                    )}
+              </p>
+              <p>
                 <strong>Statut :</strong>{" "}
                 {selectedReparation.statut === "termine" ? (
                   <span className="badge bg-success">Terminée</span>
