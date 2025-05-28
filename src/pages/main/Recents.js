@@ -80,7 +80,8 @@ const Recents = () => {
                     <tr key={item.id}>
                       <td>rec-{item.id}</td>
                       <td>
-                        {item.vehicule?.marque} {item.vehicule?.modele}
+                        <strong>{item.vehicule?.marque}</strong>{" "}
+                        {item.vehicule?.modele}
                       </td>
                       <td>
                         {item.gardien?.first_name} {item.gardien?.last_name}

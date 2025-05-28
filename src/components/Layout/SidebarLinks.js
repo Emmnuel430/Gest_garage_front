@@ -8,6 +8,7 @@ const SidebarLinks = ({ user }) => {
   const [isDocsOpen, setDocsOpen] = useState(false);
   const [isPersonnesOpen, setPersonnesOpen] = useState(false);
   const location = useLocation();
+  if (!user) return null;
 
   const isActive = (path) => location.pathname === path;
   const isGestionTechniqueActive = () => {
@@ -28,7 +29,7 @@ const SidebarLinks = ({ user }) => {
   const toggleDocs = () => setDocsOpen(!isDocsOpen);
   const togglePersonnes = () => setPersonnesOpen(!isPersonnesOpen);
 
-  const hasRole = (allowedRoles) => allowedRoles.includes(user.role);
+  const hasRole = (allowedRoles) => allowedRoles.includes(user?.role);
 
   return (
     <div className="navbar-nav w-100">
@@ -125,57 +126,51 @@ const SidebarLinks = ({ user }) => {
       )}
 
       {/* Documents */}
-      {hasRole(["super_admin", "caisse"]) && (
-        <>
-          <button
-            className={`nav-link d-flex align-items-center btn text-start w-100 ${
-              isDocumentsActive() ? "active bg-body-secondary fw-bold" : ""
-            }`}
-            onClick={toggleDocs}
-            aria-expanded={isDocsOpen}
-            aria-controls="documentsMenu"
-          >
-            <i className="fa fa-folder-open me-2"></i>
-            <span className="text-body">Documents</span>
-            <i className="fa fa-caret-down float-end ms-auto"></i>
-          </button>
+      <>
+        <button
+          className={`nav-link d-flex align-items-center btn text-start w-100 ${
+            isDocumentsActive() ? "active bg-body-secondary fw-bold" : ""
+          }`}
+          onClick={toggleDocs}
+          aria-expanded={isDocsOpen}
+          aria-controls="documentsMenu"
+        >
+          <i className="fa fa-folder-open me-2"></i>
+          <span className="text-body">Documents</span>
+          <i className="fa fa-caret-down float-end ms-auto"></i>
+        </button>
 
-          <div
-            className={`collapse ps-3 ${isDocsOpen ? "show" : ""}`}
-            id="documentsMenu"
-          >
-            {hasRole(["chef_atelier", "super_admin"]) && (
-              <Link
-                to="/billets-sortie"
-                className="nav-link d-flex align-items-center"
-              >
-                <i className="fa fa-receipt me-2"></i>{" "}
-                <span className="text-body">Billets de sortie</span>
-              </Link>
-            )}
-            {hasRole(["caisse", "super_admin"]) && (
-              <Link
-                to="/factures"
-                className="nav-link d-flex align-items-center"
-              >
-                <i className="fa fa-file-invoice-dollar me-2"></i>{" "}
-                <span className="text-body">Factures</span>
-              </Link>
-            )}
-            {/* Archives des véhicules */}
+        <div
+          className={`collapse ps-3 ${isDocsOpen ? "show" : ""}`}
+          id="documentsMenu"
+        >
+          {hasRole(["chef_atelier", "super_admin"]) && (
             <Link
-              to="/vehicules"
-              className={`nav-link d-flex align-items-center`}
+              to="/billets-sortie"
+              className="nav-link d-flex align-items-center"
             >
-              <i className="fa fa-car-side me-2"></i>
-
-              <span className="text-body">
-                Archives <br /> des véhicules
-              </span>
+              <i className="fa fa-receipt me-2"></i>{" "}
+              <span className="text-body">Billets de sortie</span>
             </Link>
-          </div>
-        </>
-      )}
+          )}
+          {hasRole(["caisse", "super_admin"]) && (
+            <Link to="/factures" className="nav-link d-flex align-items-center">
+              <i className="fa fa-file-invoice-dollar me-2"></i>{" "}
+              <span className="text-body">Factures</span>
+            </Link>
+          )}
+          <Link
+            to="/vehicules"
+            className={`nav-link d-flex align-items-center`}
+          >
+            <i className="fa fa-car-side me-2"></i>
+
+            <span className="text-body">
+              Archives <br /> des véhicules
+            </span>
+          </Link>
+        </div>
+      </>
 
       {/* Gestion des personnes */}
       {hasRole(["super_admin", "secretaire"]) && (

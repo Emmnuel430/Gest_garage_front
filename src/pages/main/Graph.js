@@ -28,7 +28,7 @@ ChartJS.register(
 );
 
 const Graph = () => {
-  const [vehiculesData, setVehiculesData] = useState({});
+  const [benefData, setBenefData] = useState({});
   const [receptionsData, setReceptionsData] = useState({});
 
   const [loading, setLoading] = useState(true);
@@ -50,7 +50,7 @@ const Graph = () => {
 
         const data = await response.json();
 
-        setVehiculesData(formatTimeSeries(data.vehicules_total, "Véhicules"));
+        setBenefData(formatTimeSeries(data.benefices_par_jour, "Bénéfices"));
         setReceptionsData(
           formatTimeSeries(data.receptions_total, "Réceptions")
         );
@@ -85,9 +85,9 @@ const Graph = () => {
       {
         label,
         data: data.map((item) => item.total),
-        borderColor: label === "Véhicules" ? "#36A2EB" : "#FF6384",
+        borderColor: label === "Bénéfices" ? "#36A2EB" : "#FF6384",
         backgroundColor:
-          label === "Véhicules"
+          label === "Bénéfices"
             ? "rgba(54, 162, 235, 0.2)"
             : "rgba(255, 99, 132, 0.5)",
       },
@@ -111,14 +111,14 @@ const Graph = () => {
             <div className="col-sm-12 col-xl-6">
               <div className="bg-body text-center rounded border p-4">
                 <div className="d-flex align-items-center justify-content-between mb-4">
-                  <h6 className="mb-0">Évolution des Véhicules</h6>
+                  <h6 className="mb-0">Évolution des Bénéfices / jour</h6>
                 </div>
-                {isDatasetEmpty(vehiculesData) ? (
+                {isDatasetEmpty(benefData) ? (
                   <p className="text-muted">
                     Aucune donnée disponible pour le moment.
                   </p>
                 ) : (
-                  <Line data={vehiculesData} />
+                  <Line data={benefData} />
                 )}
               </div>
             </div>

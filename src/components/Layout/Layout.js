@@ -1,5 +1,5 @@
 // Importation des dépendances nécessaires
-import React from "react";
+import React, { useState } from "react";
 import "../../assets/css/Home.css"; // Importation du fichier CSS pour la mise en page
 import HomeScript from "../../assets/js/HomeScript"; // Importation d'un script personnalisé pour la page
 import loginImage from "../../assets/img/user.png"; // Importation d'une image pour le profil utilisateur
@@ -12,6 +12,7 @@ import ThemeSwitcher from "../others/ThemeSwitcher"; // Importation du composant
 const Layout = ({ children }) => {
   // Récupération des informations de l'utilisateur depuis le localStorage (si elles existent)
   let user = JSON.parse(localStorage.getItem("user-info"));
+  const [load, setLoad] = useState(false);
 
   // Utilisation de 'useNavigate' pour effectuer des redirections dans l'application
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ const Layout = ({ children }) => {
     const token = localStorage.getItem("token");
 
     try {
+      setLoad(true);
       await fetch(`${process.env.REACT_APP_API_BASE_URL}/logout`, {
         method: "POST",
         headers: {
@@ -30,13 +32,13 @@ const Layout = ({ children }) => {
       });
     } catch (error) {
       console.error("Erreur de déconnexion :", error);
+    } finally {
+      setLoad(false);
     }
-
-    // Nettoyage du localStorage
-    localStorage.clear();
-
     // Redirection
     navigate("/");
+    // Nettoyage du localStorage
+    localStorage.clear();
   }
 
   return (
@@ -114,8 +116,8 @@ const Layout = ({ children }) => {
                     height="40"
                   />
                   <span className="d-none d-lg-inline items text-body">
-                    {user && user.firstName}{" "}
-                    <strong>{user && user.lastName}</strong>
+                    {/* {user && user.first_name}{" "} */}
+                    <strong>{user && user.last_name}</strong>
                   </span>
                 </Link>
                 {/* Menu déroulant avec l'option de déconnexion */}
@@ -125,7 +127,13 @@ const Layout = ({ children }) => {
                     className="dropdown-item text-body"
                     onClick={logOut}
                   >
-                    Déconnexion
+                    {load ? (
+                      <span>
+                        <i className="fas fa-spinner fa-spin"></i> Chargement...
+                      </span>
+                    ) : (
+                      <span>Déconnexion</span>
+                    )}
                   </button>
                 </div>
               </div>

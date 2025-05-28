@@ -78,7 +78,6 @@ const Vehicule = () => {
               title="Véhicules"
               main={allVehicules.length || null}
             />
-            <h2 className="mb-4">Liste des véhicules</h2>
             <div className="table-responsive">
               <Table hover responsive className="centered-table">
                 <thead>

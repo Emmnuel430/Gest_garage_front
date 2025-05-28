@@ -208,7 +208,6 @@ img {
 }
 
 .content .navbar .dropdown-toggle::after {
-  margin-left: 0;
   vertical-align: middle;
   border: none;
   content: "\f107";

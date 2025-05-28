@@ -86,7 +86,7 @@ const AddMecanicien = () => {
         }
       );
 
-      console.log(JSON.stringify(payload));
+      // console.log(JSON.stringify(payload));
 
       const result = await response.json();
 
