@@ -290,7 +290,12 @@ const Mecaniciens = () => {
         )}
       </div>
       {/* Modal de détails */}
-      <Modal show={showDetailsModal} onHide={handleCloseDetailsModal} centered>
+      <Modal
+        show={showDetailsModal}
+        onHide={handleCloseDetailsModal}
+        centered
+        size="xl"
+      >
         <Modal.Header closeButton>
           <Modal.Title>Détails du Mécanicien</Modal.Title>
         </Modal.Header>
@@ -386,6 +391,82 @@ const Mecaniciens = () => {
                   )}
                 </div>
               </div>
+
+              {selectedMecanicien.reparations &&
+                selectedMecanicien.reparations.length > 0 && (
+                  <>
+                    <hr />
+                    <h5 className="mt-3">Véhicules réparés</h5>
+                    <div className="table-responsive">
+                      <Table hover responsive className="centered-table mt-2">
+                        <thead>
+                          <tr>
+                            <th>#</th>
+                            <th>Immat.</th>
+                            <th>Marque</th>
+                            <th>Modèle</th>
+                            <th>Client</th>
+                            <th>Date réception</th>
+                            <th>Date de sortie</th>
+                            <th>Statut</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {selectedMecanicien.reparations
+                            .sort(
+                              (a, b) =>
+                                new Date(b.created_at) - new Date(a.created_at)
+                            )
+                            .map((rep, index) => (
+                              <tr key={rep.id}>
+                                <td>{index + 1}</td>
+                                <td>
+                                  {rep.reception?.vehicule?.immatriculation ||
+                                    "N/A"}
+                                </td>
+                                <td>
+                                  {rep.reception?.vehicule?.marque || "N/A"}
+                                </td>
+                                <td>
+                                  {rep.reception?.vehicule?.modele || "N/A"}
+                                </td>
+                                <td>
+                                  {rep.reception?.vehicule?.client_nom || "N/A"}
+                                </td>
+                                <td>
+                                  {rep.reception?.date_arrivee
+                                    ? format(
+                                        new Date(rep.reception.date_arrivee),
+                                        "dd/MM/yyyy HH:mm"
+                                      )
+                                    : "N/A"}
+                                </td>
+                                <td>
+                                  {rep.updated_at
+                                    ? format(
+                                        new Date(rep.updated_at),
+                                        "dd/MM/yyyy HH:mm"
+                                      )
+                                    : "N/A"}
+                                </td>
+                                <td>
+                                  <span
+                                    className={`text-uppercase badge ${
+                                      rep.statut === "termine"
+                                        ? "bg-success"
+                                        : "bg-warning"
+                                    }`}
+                                  >
+                                    {rep.statut}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </Table>
+                    </div>
+                  </>
+                )}
             </div>
           )}
         </Modal.Body>

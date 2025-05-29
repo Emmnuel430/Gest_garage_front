@@ -71,6 +71,24 @@ const Logs = () => {
     }
   };
 
+  // Traduction des actions en français
+  const getActionLabel = (action) => {
+    switch (action) {
+      case "add":
+        return "Ajouter";
+      case "update":
+        return "Mise à jour";
+      case "delete":
+        return "Supprimer";
+      case "maj":
+        return "Mise à jour";
+      case "create":
+        return "Création";
+      default:
+        return "Action inconnue";
+    }
+  };
+
   // Couleurs des actions
   const getActionColor = (action) => {
     switch (action) {
@@ -182,7 +200,7 @@ const Logs = () => {
                           log.action
                         )} text-white text-center text-uppercase`}
                       >
-                        {log.action}
+                        {getActionLabel(log.action)}
                       </td>
                       <td>
                         <span className="text-uppercase">
@@ -273,7 +291,9 @@ const Logs = () => {
                     <div className="row mb-2">
                       <div className="col-6 fw-bold">Action :</div>
                       <div className={`col-6 text-uppercase `}>
-                        -- {selectedLog.action || "Non disponible"} --
+                        --{" "}
+                        {getActionLabel(selectedLog.action) || "Non disponible"}{" "}
+                        --
                       </div>
                     </div>
                     <div className="row mb-2">

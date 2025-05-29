@@ -126,40 +126,45 @@ const BilletsSortie = () => {
                       </td>
                     </tr>
                   ) : (
-                    filteredBilletsSortie.map((billet) => (
-                      <tr key={billet.id}>
-                        <td>{billet.id}</td>
-                        <td>{billet.reception.vehicule.immatriculation}</td>
-                        <td>{billet.reception.vehicule.client_nom}</td>
-                        <td>
-                          <strong>{billet.reception.vehicule.marque}</strong>{" "}
-                          {billet.reception.vehicule.modele}
-                        </td>
-                        <td>
-                          {billet.chef_atelier.first_name}{" "}
-                          {billet.chef_atelier.last_name}
-                        </td>
-                        <td>
-                          {moment(billet.reception.chrono.start_time).format(
-                            "DD/MM/YY HH:mm:ss"
-                          )}
-                        </td>
-                        <td>
-                          {moment(billet.reception.chrono.end_time).format(
-                            "DD/MM/YY HH:mm:ss"
-                          )}
-                        </td>
-                        <td>
-                          <Button
-                            variant="info"
-                            onClick={() => handleShowDetails(billet)}
-                            className="btn-sm"
-                          >
-                            <i className="fa fa-eye"></i>
-                          </Button>
-                        </td>
-                      </tr>
-                    ))
+                    filteredBilletsSortie
+                      .sort(
+                        (a, b) =>
+                          new Date(b.created_at) - new Date(a.created_at)
+                      )
+                      .map((billet) => (
+                        <tr key={billet.id}>
+                          <td>{billet.id}</td>
+                          <td>{billet.reception.vehicule.immatriculation}</td>
+                          <td>{billet.reception.vehicule.client_nom}</td>
+                          <td>
+                            <strong>{billet.reception.vehicule.marque}</strong>{" "}
+                            {billet.reception.vehicule.modele}
+                          </td>
+                          <td>
+                            {billet.chef_atelier.first_name}{" "}
+                            {billet.chef_atelier.last_name}
+                          </td>
+                          <td>
+                            {moment(billet.reception.chrono.start_time).format(
+                              "DD/MM/YY HH:mm:ss"
+                            )}
+                          </td>
+                          <td>
+                            {moment(billet.reception.chrono.end_time).format(
+                              "DD/MM/YY HH:mm:ss"
+                            )}
+                          </td>
+                          <td>
+                            <Button
+                              variant="info"
+                              onClick={() => handleShowDetails(billet)}
+                              className="btn-sm"
+                            >
+                              <i className="fa fa-eye"></i>
+                            </Button>
+                          </td>
+                        </tr>
+                      ))
                   )}
                 </tbody>
               </Table>

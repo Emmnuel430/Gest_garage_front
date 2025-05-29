@@ -117,6 +117,24 @@ const LastSection = () => {
     return shortened; // Retourne la version abrégée
   };
 
+  // Traduction des actions en français
+  const getActionLabel = (action) => {
+    switch (action) {
+      case "add":
+        return "Ajouter";
+      case "update":
+        return "Mise à jour";
+      case "delete":
+        return "Supprimer";
+      case "maj":
+        return "Mise à jour";
+      case "create":
+        return "Création";
+      default:
+        return "Action inconnue";
+    }
+  };
+
   // Couleurs des actions
   const getActionColor = (action) => {
     switch (action) {
@@ -238,7 +256,7 @@ const LastSection = () => {
                                       log.action
                                     )} text-uppercase text-white rounded-pill px-2 py-1`}
                                   >
-                                    {log.action}
+                                    {getActionLabel(log.action)}
                                   </span>
                                 </td>
                                 <td className="text-capitalize">
