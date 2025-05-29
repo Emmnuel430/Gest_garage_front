@@ -175,9 +175,6 @@ const UserList = () => {
                   // Si des utilisateurs existent, on les affiche dans des lignes de tableau
                   filteredUsers
                     .filter((user) => !filter || user.role === filter)
-                    .sort(
-                      (a, b) => new Date(b.created_at) - new Date(a.created_at)
-                    )
                     .map((user) => (
                       <tr key={user.id}>
                         <td>{user.id}</td>
