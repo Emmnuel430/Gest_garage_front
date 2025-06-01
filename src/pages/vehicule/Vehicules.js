@@ -138,7 +138,7 @@ const Vehicule = () => {
                 <tbody>
                   {currentVehicules.length === 0 ? (
                     <tr>
-                      <td colSpan="6" className="text-center">
+                      <td colSpan="7" className="text-center">
                         Aucun véhicule trouvé.
                       </td>
                     </tr>

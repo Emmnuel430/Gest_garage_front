@@ -23,7 +23,13 @@ const AddMecanicien = () => {
   const [showModal, setShowModal] = useState(false);
 
   const handleShowModal = () => {
-    if (!mecanicien.nom || !mecanicien.prenom || !mecanicien.type) {
+    if (
+      !mecanicien.nom ||
+      !mecanicien.prenom ||
+      !mecanicien.type ||
+      !mecanicien.contact ||
+      !mecanicien.contact_urgence
+    ) {
       setError("Tous les champs sont requis.");
       return;
     }
@@ -195,7 +201,14 @@ const AddMecanicien = () => {
 
         <button
           onClick={handleShowModal}
-          disabled={loading}
+          disabled={
+            loading ||
+            !mecanicien.nom ||
+            !mecanicien.prenom ||
+            !mecanicien.type ||
+            !mecanicien.contact ||
+            !mecanicien.contact_urgence
+          }
           className="btn btn-primary w-100"
         >
           {loading ? (

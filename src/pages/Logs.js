@@ -154,11 +154,11 @@ const Logs = () => {
               setFilter={setFilter}
               filterOptions={[
                 { value: "", label: "Tous les logs" },
-                { value: "add", label: "Add" },
-                { value: "delete", label: "Delete" },
-                { value: "update", label: "Update" },
-                { value: "maj", label: "Maj" },
-                { value: "create", label: "Create" },
+                { value: "add", label: "Ajouter" },
+                { value: "delete", label: "Supprimer" },
+                { value: "update", label: "M.A.J" },
+                { value: "maj", label: "M.A.J (👤)" },
+                { value: "create", label: "Créer" },
               ]}
               sortOption={sortOption}
               setSortOption={setSortOption}
