@@ -22,6 +22,7 @@ const Receptions = () => {
 
   const userInfo = JSON.parse(localStorage.getItem("user-info"));
   const userId = userInfo ? userInfo.id : null;
+  const userRole = userInfo ? userInfo.role : null;
 
   useEffect(() => {
     const fetchReceptions = async () => {
@@ -113,6 +114,16 @@ const Receptions = () => {
     termine: "bg-success",
   };
 
+  const statutLabel = {
+    attente: (
+      <>
+        En attente <br /> de validation
+      </>
+    ),
+    validee: "Réception validée",
+    termine: "Terminé",
+  };
+
   const ordreStatut = ["attente", "validee", "termine"];
 
   return (
@@ -174,7 +185,9 @@ const Receptions = () => {
                       );
                     })
                     .map((reception) => {
-                      const isDisabled = reception.statut !== "attente";
+                      const isDisabled =
+                        userRole !== "super_admin" &&
+                        reception.statut !== "attente";
 
                       return (
                         <tr
@@ -195,7 +208,7 @@ const Receptions = () => {
                                 statutColors[reception.statut] || "bg-dark"
                               } text-white`}
                             >
-                              {reception.statut}
+                              {statutLabel[reception.statut]}
                             </span>
                           </td>
                           <td
@@ -360,7 +373,7 @@ const Receptions = () => {
         title="Confirmer la suppression"
         body={
           <p>
-            Voulez-vous vraiment supprimer la réception{" "}
+            Voulez-vous vraiment supprimer la réception <br /> du véhicule{" "}
             <strong>
               {selectedReception?.vehicule?.immatriculation || "Inconnue"}
             </strong>{" "}

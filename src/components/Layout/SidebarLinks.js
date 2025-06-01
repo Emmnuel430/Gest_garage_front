@@ -45,77 +45,84 @@ const SidebarLinks = ({ user }) => {
           <span className="text-body">Dashboard</span>
         </div>
       </Link>
+      <>
+        {hasRole(["gardien", "secretaire", "chef_atelier", "super_admin"]) && (
+          <Link
+            to="/receptions"
+            className={`nav-link d-flex align-items-center ${
+              isActive("/receptions") ? "active bg-body-secondary fw-bold" : ""
+            }`}
+          >
+            <i className="fa fa-car me-2"></i>
+            <span className="text-body">
+              Réceptions <br /> de véhicules
+            </span>
+          </Link>
+        )}
 
-      {hasRole([
-        "gardien",
-        "secretaire",
-        "chef_atelier",
-        "super_admin",
-        "caisse",
-      ]) && (
-        <>
-          {hasRole([
-            "gardien",
-            "secretaire",
-            "chef_atelier",
-            "super_admin",
-          ]) && (
-            <Link
-              to="/receptions"
-              className={`nav-link d-flex align-items-center ${
-                isActive("/receptions")
-                  ? "active bg-body-secondary fw-bold"
-                  : ""
-              }`}
-            >
-              <i className="fa fa-car me-2"></i>
-              <span className="text-body">Réceptions de véhicules</span>
-            </Link>
-          )}
+        {hasRole(["secretaire", "super_admin"]) && (
+          <Link
+            to="/check-reception"
+            className={`nav-link d-flex align-items-center ${
+              isActive("/check-reception")
+                ? "active bg-body-secondary fw-bold"
+                : ""
+            }`}
+          >
+            <i className="fa fa-check-circle me-2"></i>
+            <span className="text-body">
+              Valider les <br /> réceptions
+            </span>
+          </Link>
+        )}
 
-          {hasRole(["secretaire", "super_admin"]) && (
-            <Link
-              to="/check-reception"
-              className={`nav-link d-flex align-items-center ${
-                isActive("/check-reception")
-                  ? "active bg-body-secondary fw-bold"
-                  : ""
-              }`}
-            >
-              <i className="fa fa-check-circle me-2"></i>
-              <span className="text-body">Vérification véhicule</span>
-            </Link>
-          )}
+        {hasRole(["secretaire", "chef_atelier", "super_admin"]) && (
+          <Link
+            to="/chronos"
+            className={`nav-link d-flex align-items-center ${
+              isActive("/chronos") ? "active bg-body-secondary fw-bold" : ""
+            }`}
+          >
+            <i className="fa fa-stopwatch me-2"></i>
+            <span className="text-body">Chronos</span>
+          </Link>
+        )}
 
-          {hasRole(["secretaire", "chef_atelier", "super_admin"]) && (
-            <Link
-              to="/chronos"
-              className={`nav-link d-flex align-items-center ${
-                isActive("/chronos") ? "active bg-body-secondary fw-bold" : ""
-              }`}
-            >
-              <i className="fa fa-stopwatch me-2"></i>
-              <span className="text-body">Chronos</span>
-            </Link>
-          )}
-
-          {hasRole(["chef_atelier", "super_admin"]) && (
-            <Link
-              to="/reparations"
-              className={`nav-link d-flex align-items-center ${
-                isActive("/reparations")
-                  ? "active bg-body-secondary fw-bold"
-                  : ""
-              }`}
-            >
-              <i className="fa fa-wrench me-2"></i>
-              <span className="text-body">Réparations</span>
-            </Link>
-          )}
-        </>
+        {hasRole(["chef_atelier", "super_admin"]) && (
+          <Link
+            to="/reparations"
+            className={`nav-link d-flex align-items-center ${
+              isActive("/reparations") ? "active bg-body-secondary fw-bold" : ""
+            }`}
+          >
+            <i className="fa fa-wrench me-2"></i>
+            <span className="text-body">Réparations</span>
+          </Link>
+        )}
+      </>
+      {hasRole(["caisse", "super_admin"]) && (
+        <Link
+          to="/factures"
+          className={`nav-link d-flex align-items-center ${
+            isActive("/factures") ? "active bg-body-secondary fw-bold" : ""
+          }`}
+        >
+          <i className="fa fa-file-invoice-dollar me-2"></i>
+          <span className="text-body">Factures</span>
+        </Link>
       )}
-
-      {hasRole(["chef_atelier", "super_admin"]) && (
+      {hasRole(["secretaire", "chef_atelier", "super_admin"]) && (
+        <Link
+          to="/vehicules"
+          className={`nav-link d-flex align-items-center ${
+            isActive("/vehicules") ? "active bg-body-secondary fw-bold" : ""
+          }`}
+        >
+          <i className="fa fa-car-side me-2"></i>
+          <span className="text-body">Véhicules</span>
+        </Link>
+      )}
+      {hasRole(["secretaire", "chef_atelier", "super_admin", "caisse"]) && (
         <Link
           to="/billets-sortie"
           className={`nav-link d-flex align-items-center ${
@@ -128,29 +135,6 @@ const SidebarLinks = ({ user }) => {
           <span className="text-body">Billets de sortie</span>
         </Link>
       )}
-
-      {hasRole(["caisse", "super_admin"]) && (
-        <Link
-          to="/factures"
-          className={`nav-link d-flex align-items-center ${
-            isActive("/factures") ? "active bg-body-secondary fw-bold" : ""
-          }`}
-        >
-          <i className="fa fa-file-invoice-dollar me-2"></i>
-          <span className="text-body">Factures</span>
-        </Link>
-      )}
-
-      <Link
-        to="/vehicules"
-        className={`nav-link d-flex align-items-center ${
-          isActive("/vehicules") ? "active bg-body-secondary fw-bold" : ""
-        }`}
-      >
-        <i className="fa fa-car-side me-2"></i>
-        <span className="text-body">Archives des véhicules</span>
-      </Link>
-
       {hasRole(["super_admin", "secretaire"]) && (
         <>
           <Link
@@ -178,7 +162,6 @@ const SidebarLinks = ({ user }) => {
           )}
         </>
       )}
-
       {/* Logs - Super Admin */}
       {user.role === "super_admin" && (
         <Link

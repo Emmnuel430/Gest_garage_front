@@ -121,15 +121,15 @@ const LastSection = () => {
   const getActionLabel = (action) => {
     switch (action) {
       case "add":
-        return "Ajouter";
+        return "Ajout";
       case "update":
-        return "Mise à jour";
+        return "M à j.";
       case "delete":
-        return "Supprimer";
+        return "Suppr.";
       case "maj":
-        return "Mise à jour";
+        return "M à j.";
       case "create":
-        return "Création";
+        return "Créer";
       default:
         return "Action inconnue";
     }
@@ -237,7 +237,7 @@ const LastSection = () => {
             <div className="col-sm-12 col-md-6 col-xl-4">
               <div className="h-100 bg-body rounded border p-4">
                 <div className="d-flex align-items-center justify-content-between mb-4">
-                  <h6 className="mb-0">Logs (admin only)</h6>
+                  <h6 className="mb-0">Logs</h6>
                   {userInfo?.role === "super_admin" && (
                     <Link to="/logs">Voir</Link>
                   )}
@@ -286,7 +286,9 @@ const LastSection = () => {
               <div className="h-100 bg-body rounded border p-4">
                 <div className="d-flex align-items-center justify-content-between mb-4">
                   <h6 className="mb-0">Chronos en cours</h6>
-                  <Link to="/chronos">Voir</Link>
+                  {userInfo?.role !== "gardien" && (
+                    <Link to="/chronos">Voir</Link>
+                  )}
                 </div>
                 <div className="d-flex flex-column align-items-center py-2">
                   {chronosEnCours.length > 0 ? (

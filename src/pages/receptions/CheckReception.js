@@ -148,6 +148,17 @@ const CheckReception = () => {
     validee: "bg-primary",
     termine: "bg-success",
   };
+
+  const statutLabel = {
+    attente: (
+      <>
+        En attente <br /> de validation
+      </>
+    ),
+    validee: "Réception validée",
+    termine: "Terminé",
+  };
+
   const ordreStatut = ["attente", "validee", "termine"];
 
   return (
@@ -225,7 +236,7 @@ const CheckReception = () => {
                                 statutColors[reception.statut] || "bg-dark"
                               } text-white`}
                             >
-                              {reception.statut}
+                              {statutLabel[reception.statut]}
                             </span>
                           </td>
                           <td className="table-operations d-flex justify-content-center">
@@ -344,7 +355,7 @@ const CheckReception = () => {
                       statutColors[selectedReception.statut] || "bg-dark"
                     } text-white`}
                   >
-                    {selectedReception.statut}
+                    {statutLabel[selectedReception.statut]}
                   </span>
                 </div>
               </div>

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Layout from "../../components/Layout/Layout";
 import Loader from "../../components/Layout/Loader";
-import { Card, Button, Table } from "react-bootstrap";
-import ConfirmPopup from "../../components/Layout/ConfirmPopup";
+import { Card, Table } from "react-bootstrap";
+// import ConfirmPopup from "../../components/Layout/ConfirmPopup";
 import SearchBar from "../../components/Layout/SearchBar";
 import moment from "moment";
 import "moment-duration-format";
@@ -16,11 +16,11 @@ const Chronos = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [currentTime, setCurrentTime] = useState(Date.now());
-  const [showModal, setShowModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedReception, setSelectedReception] = useState(null);
+  /*  const [showModal, setShowModal] = useState(false);
+  const [selectedReception, setSelectedReception] = useState(null); */
 
-  const handleCloseModal = () => setShowModal(false);
+  /* const handleCloseModal = () => setShowModal(false);
   const handleOpenModal = (chrono) => {
     setSelectedReception(chrono.reception);
     setShowModal(true);
@@ -31,10 +31,10 @@ const Chronos = () => {
       handleStopChrono(selectedReception.id);
     }
     setShowModal(false);
-  };
+  }; */
 
-  const userInfo = JSON.parse(localStorage.getItem("user-info"));
-  const userId = userInfo?.id;
+  /* const userInfo = JSON.parse(localStorage.getItem("user-info"));
+  const userId = userInfo?.id; */
 
   // Actualiser l'heure locale toutes les secondes
   useEffect(() => {
@@ -87,7 +87,7 @@ const Chronos = () => {
     }
   };
 
-  const handleStopChrono = async (chronoId) => {
+  /* const handleStopChrono = async (chronoId) => {
     try {
       const response = await fetch(
         `${process.env.REACT_APP_API_BASE_URL}/stop_chrono/${chronoId}`,
@@ -108,7 +108,7 @@ const Chronos = () => {
     } catch (err) {
       alert("Erreur lors de l'arrêt du chrono.");
     }
-  };
+  }; */
 
   // Fonction pour calculer le temps écoulé
   const renderElapsedTime = (start, end) => {
@@ -170,7 +170,7 @@ const Chronos = () => {
                         </Card.Text>
                         <Card.Text>
                           Temps écoulé <br />
-                          <span className="text-primary fw-bold">
+                          <span className="text-primary fw-bold h4">
                             {renderElapsedTime(
                               chrono.start_time,
                               chrono.end_time
@@ -179,12 +179,12 @@ const Chronos = () => {
                         </Card.Text>
                       </div>
                       <div className="mt-3">
-                        <Button
+                        {/* <Button
                           variant="danger"
                           onClick={() => handleOpenModal(chrono)}
                         >
                           Arrêter
-                        </Button>
+                        </Button> */}
                       </div>
                     </Card.Body>
                   </Card>
@@ -194,7 +194,7 @@ const Chronos = () => {
         )}
       </div>
 
-      <ConfirmPopup
+      {/* <ConfirmPopup
         show={showModal}
         onClose={handleCloseModal}
         onConfirm={handleDelete}
@@ -208,7 +208,7 @@ const Chronos = () => {
             ?
           </p>
         }
-      />
+      /> */}
 
       {/* Tableau des chronos */}
       <div className="mt-5">

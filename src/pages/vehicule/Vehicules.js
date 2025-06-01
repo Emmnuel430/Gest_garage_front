@@ -15,6 +15,50 @@ const Vehicule = () => {
   const [selectedVehicule, setSelectedVehicule] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [error, setError] = useState("");
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  const userInfo = JSON.parse(localStorage.getItem("user-info"));
+  const userId = userInfo?.id;
+
+  const handleShowConfirmModal = (vehicule) => {
+    setSelectedVehicule(vehicule);
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmGeneration = () => {
+    handleGenererBillet(selectedVehicule?.receptions?.[0]?.id);
+  };
+
+  const handleGenererBillet = async (id) => {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_BASE_URL}/generer_billet/${id}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ user_id: userId }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Échec de la génération du billet");
+      }
+
+      const result = await response.json();
+      alert(result.message);
+      setShowConfirmModal(false);
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    } catch (error) {
+      alert("Erreur lors de la validation : " + error);
+    } finally {
+      setLoading(false); // Fin du traitement
+    }
+  };
 
   const fetchVehicules = async () => {
     setLoading(true);
@@ -82,12 +126,13 @@ const Vehicule = () => {
               <Table hover responsive className="centered-table">
                 <thead>
                   <tr>
+                    <th></th>
                     <th>#</th>
                     <th>Immatriculation.</th>
                     <th>Client</th>
                     <th>Marque / Modèle</th>
                     <th>Mécanicien</th>
-                    <th>Actions</th>
+                    <th>Billet de sortie</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -105,16 +150,6 @@ const Vehicule = () => {
                       )
                       .map((vehicule) => (
                         <tr key={vehicule.id}>
-                          <td>{vehicule.id}</td>
-                          <td>{vehicule.immatriculation}</td>
-                          <td>{vehicule.client_nom}</td>
-                          <td>
-                            <strong>{vehicule.marque}</strong> {vehicule.modele}
-                          </td>
-                          <td>
-                            {vehicule.mecanicien?.prenom}{" "}
-                            {vehicule.mecanicien?.nom}
-                          </td>
                           <td>
                             <Button
                               variant="info"
@@ -123,6 +158,60 @@ const Vehicule = () => {
                             >
                               <i className="fa fa-eye"></i>
                             </Button>
+                          </td>
+                          <td>{vehicule.id || "-"}</td>
+                          <td>{vehicule.immatriculation || "-"}</td>
+                          <td>{vehicule.client_nom || "-"}</td>
+                          <td>
+                            <strong>{vehicule.marque || "N/A"}</strong>{" "}
+                            {vehicule.modele || "N/A"}
+                          </td>
+                          <td>
+                            {vehicule.mecanicien?.prenom || "N/A"}{" "}
+                            {vehicule.mecanicien?.nom || "N/A"}
+                          </td>
+                          <td className="d-flex justify-content-center">
+                            {vehicule.receptions.length > 0 ? (
+                              (() => {
+                                const reception = vehicule.receptions[0];
+                                const facture = reception.facture;
+                                const billetSortie = reception.billet_sortie;
+
+                                if (facture?.statut === "payee") {
+                                  if (billetSortie !== null) {
+                                    return (
+                                      <span className="text-success d-flex align-items-center gap-1 btn btn-sm">
+                                        <i className="fa fa-check-circle" />{" "}
+                                        Billet généré
+                                      </span>
+                                    );
+                                  } else {
+                                    return (
+                                      <Button
+                                        variant="primary"
+                                        className="btn-sm d-flex align-items-center gap-1"
+                                        onClick={() =>
+                                          handleShowConfirmModal(vehicule)
+                                        }
+                                      >
+                                        <i className="fa fa-file-invoice" />{" "}
+                                        Générer billet
+                                      </Button>
+                                    );
+                                  }
+                                } else {
+                                  return (
+                                    <span className="text-muted fst-italic  btn btn-sm">
+                                      Facture non réglée
+                                    </span>
+                                  );
+                                }
+                              })()
+                            ) : (
+                              <span className="text-muted">
+                                Aucune réception
+                              </span>
+                            )}
                           </td>
                         </tr>
                       ))
@@ -218,6 +307,7 @@ const Vehicule = () => {
                   Voir le PDF
                 </a>
               </p>
+              {/* ---------------------------------- */}
               <hr />
               <h5>Mécanicien</h5>
               <p>
@@ -230,6 +320,7 @@ const Vehicule = () => {
               <p>
                 <strong>Contact :</strong> {selectedVehicule.mecanicien.contact}
               </p>
+              {/* ---------------------------------- */}
               <hr />
               <h5>Réceptions</h5>
               {selectedVehicule.receptions.map((r) => (
@@ -268,24 +359,9 @@ const Vehicule = () => {
                             : "En cours"}
                         </span>
                       </p>
-                      {r.reparation.statut === "termine" && (
-                        <>
-                          <p>
-                            <strong>Billet de sortie :</strong>{" "}
-                            <a
-                              href={`${process.env.REACT_APP_API_BASE_URL_STORAGE}/${r.billet_sortie.fiche_sortie_vehicule}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="btn btn-sm btn-outline-success"
-                            >
-                              Voir le billet
-                            </a>
-                          </p>
-                        </>
-                      )}
                     </>
                   )}
-                  {r.facture && (
+                  {r.facture?.date_generation && (
                     <>
                       <p>
                         <strong>Montant :</strong> {r.facture.montant} FCFA
@@ -310,6 +386,21 @@ const Vehicule = () => {
                         </a>
                       </p>
                       <hr />
+                      {r.billet_sortie && (
+                        <>
+                          <p>
+                            <strong>Billet de sortie :</strong>{" "}
+                            <a
+                              href={`${process.env.REACT_APP_API_BASE_URL_STORAGE}/${r.billet_sortie.fiche_sortie_vehicule}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="btn btn-sm btn-outline-success"
+                            >
+                              Voir le billet
+                            </a>
+                          </p>
+                        </>
+                      )}
                     </>
                   )}
                 </div>
@@ -317,6 +408,49 @@ const Vehicule = () => {
             </>
           )}
         </Modal.Body>
+      </Modal>
+
+      {/* Generer */}
+      <Modal
+        show={showConfirmModal}
+        onHide={() => setShowConfirmModal(false)}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmation</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedVehicule ? (
+            <>
+              Voulez-vous générer le billet de sortie de{" "}
+              <strong>{selectedVehicule.immatriculation}</strong> ?
+            </>
+          ) : (
+            <>Chargement du véhicule...</>
+          )}
+        </Modal.Body>
+
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => setShowConfirmModal(false)}
+          >
+            Annuler
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleConfirmGeneration}
+            disabled={loading}
+          >
+            {loading ? (
+              <span>
+                <i className="fas fa-spinner fa-spin"></i> Chargement...
+              </span>
+            ) : (
+              <span>Générer</span>
+            )}
+          </Button>
+        </Modal.Footer>
       </Modal>
     </Layout>
   );

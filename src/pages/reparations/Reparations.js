@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import Layout from "../../components/Layout/Layout";
 import Loader from "../../components/Layout/Loader";
 import { Card, Button, Modal, Table } from "react-bootstrap";
@@ -137,9 +136,9 @@ const Reparations = () => {
               <div className="text-center">Aucune réparation en cours.</div>
             ) : (
               reparationsEnCours.map((rep) => (
-                <div className="col-lg-4 col-md-6 mb-4" key={rep.id}>
-                  <Card className="shadow-sm">
-                    <Card.Body className="">
+                <div className="col-md-4 mb-4" key={rep.id}>
+                  <Card className="shadow-sm d-flex flex-column align-items-center">
+                    <Card.Body className="d-flex flex-column justify-content-between align-items-center text-center">
                       <Card.Title>
                         <span className="text-muted fs-5">Immat. </span>
                         <br />
@@ -166,7 +165,6 @@ const Reparations = () => {
                       <Button
                         variant="success"
                         onClick={() => handleOpenModal(rep)}
-                        className="me-2"
                       >
                         Terminer
                       </Button>
@@ -231,9 +229,7 @@ const Reparations = () => {
                       <td>
                         {rep.created_at === rep.updated_at
                           ? "En cours ..."
-                          : moment(rep.reception.chrono.end_time).format(
-                              "DD/MM/YY HH:mm:ss"
-                            )}
+                          : moment(rep.updated_at).format("DD/MM/YY HH:mm:ss")}
                       </td>
                       <td>
                         {rep.statut === "termine" ? (
@@ -335,6 +331,10 @@ const Reparations = () => {
                 </span>
               </p>
               <p>
+                <strong>Motif :</strong>{" "}
+                {selectedReparation.reception.motif_visite}
+              </p>
+              <p>
                 <strong>Début :</strong>{" "}
                 {format(
                   new Date(selectedReparation.created_at),
@@ -363,21 +363,7 @@ const Reparations = () => {
                 {selectedReparation.reception.vehicule.mecanicien.nom}{" "}
                 {selectedReparation.reception.vehicule.mecanicien.prenom}
               </p>
-              <p>
-                {selectedReparation.statut === "termine" && (
-                  <>
-                    <strong>Fiche de sortie :</strong>{" "}
-                    <Link
-                      to={`${process.env.REACT_APP_API_BASE_URL_STORAGE}/${selectedReparation.reception.billet_sortie?.fiche_sortie_vehicule}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn btn-outline-primary btn-sm"
-                    >
-                      Voir la fiche
-                    </Link>
-                  </>
-                )}
-              </p>
+              <p></p>
             </div>
           )}
         </Modal.Body>

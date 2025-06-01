@@ -38,6 +38,16 @@ const Recents = () => {
     termine: "bg-success",
   };
 
+  const statutLabel = {
+    attente: (
+      <>
+        En attente <br /> de validation
+      </>
+    ),
+    validee: "Réception validée",
+    termine: "Terminé",
+  };
+
   return (
     <div>
       {error && <div className="alert alert-danger">{error}</div>}
@@ -92,7 +102,7 @@ const Recents = () => {
                             statutColors[item.statut] || "bg-dark"
                           } text-white`}
                         >
-                          {item.statut}
+                          {statutLabel[item.statut]}
                         </span>
                       </td>
                       <td>{item.motif_visite}</td>
