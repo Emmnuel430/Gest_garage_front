@@ -18,7 +18,7 @@ const Protected = ({ Cmp, adminOnly = false, roles = [] }) => {
     const checkUserInDB = async () => {
       try {
         const response = await fetch(
-          `${process.env.REACT_APP_API_BASE_URL}/users/${user.id}`,
+          `${process.env.REACT_APP_API_BASE_URL}/user/${user.id}`,
           {
             method: "GET",
             headers: {
@@ -32,14 +32,17 @@ const Protected = ({ Cmp, adminOnly = false, roles = [] }) => {
           // Interdit
         }
 
+        const data = await response.json();
+        const currentUser = data.user;
+
         // Vérification adminOnly
-        if (adminOnly && user.role !== "super_admin") {
+        if (adminOnly && currentUser.role !== "super_admin") {
           navigate("/access-denied");
           return;
         }
 
         // Vérifie si le rôle est autorisé
-        if (roles.length > 0 && !roles.includes(user.role)) {
+        if (roles.length > 0 && !roles.includes(currentUser.role)) {
           navigate("/access-denied");
           return;
         }

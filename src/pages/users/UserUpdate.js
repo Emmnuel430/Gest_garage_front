@@ -13,6 +13,7 @@ const UserUpdate = () => {
     first_name: "",
     last_name: "",
     pseudo: "",
+    role: "",
     newPassword: "",
   }); // État pour stocker les données de l'utilisateur
   const [loading, setLoading] = useState(false); // État pour gérer l'état de chargement
@@ -74,12 +75,16 @@ const UserUpdate = () => {
         return;
       }
 
-      const { first_name, last_name, pseudo, newPassword } = user;
+      const { first_name, last_name, pseudo, role, newPassword } = user;
 
       const body = { prenom: first_name, nom: last_name, pseudo }; // Création du corps de la requête
 
       if (newPassword) {
         body.password = newPassword; // Si un nouveau mot de passe est fourni, l'ajouter au corps
+      }
+
+      if (userInfo.role === "super_admin" && role) {
+        body.role = role;
       }
 
       const response = await fetch(
@@ -109,6 +114,14 @@ const UserUpdate = () => {
       setLoading(false); // Fin du traitement
     }
   };
+
+  const roles = [
+    { value: "super_admin", label: "Super Admin" },
+    { value: "gardien", label: "Gardien" },
+    { value: "secretaire", label: "Secrétaire" },
+    { value: "chef_atelier", label: "Chef Atelier" },
+    { value: "caisse", label: "Caisse" },
+  ];
 
   return (
     <Layout>
@@ -158,6 +171,28 @@ const UserUpdate = () => {
           onChange={handleChange}
         />
         <br />
+        {userInfo.role === "super_admin" && (
+          <>
+            <label htmlFor="role" className="form-label">
+              Rôle
+            </label>
+            <select
+              id="role"
+              name="role"
+              className="form-select"
+              value={user.role}
+              onChange={handleChange}
+            >
+              <option value="">-- Sélectionner un rôle --</option>
+              {roles.map((r) => (
+                <option key={r.value} value={r.value}>
+                  {r.label}
+                </option>
+              ))}
+            </select>
+            <br />
+          </>
+        )}
         <br />
         {/* Bouton pour afficher ou masquer le champ de mot de passe */}
         <button
