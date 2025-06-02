@@ -29,6 +29,7 @@ const Protected = ({ Cmp, adminOnly = false, roles = [] }) => {
 
         if (!response.ok) {
           throw new Error("Unauthorized");
+          // Interdit
         }
 
         // Vérification adminOnly
