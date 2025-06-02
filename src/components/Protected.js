@@ -33,13 +33,13 @@ const Protected = ({ Cmp, adminOnly = false, roles = [] }) => {
         }
 
         // Vérification adminOnly
-        if (adminOnly && userInfo.role !== "super_admin") {
+        if (adminOnly && user.role !== "super_admin") {
           navigate("/access-denied");
           return;
         }
 
         // Vérifie si le rôle est autorisé
-        if (roles.length > 0 && !roles.includes(userInfo.role)) {
+        if (roles.length > 0 && !roles.includes(user.role)) {
           navigate("/access-denied");
           return;
         }
