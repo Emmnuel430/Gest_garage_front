@@ -111,7 +111,7 @@ const SidebarLinks = ({ user }) => {
           <span className="text-body">Factures</span>
         </Link>
       )}
-      {hasRole(["secretaire", "chef_atelier", "super_admin"]) && (
+      {hasRole(["secretaire", "chef_atelier", "super_admin", "caisse"]) && (
         <Link
           to="/vehicules"
           className={`nav-link d-flex align-items-center ${
@@ -122,7 +122,7 @@ const SidebarLinks = ({ user }) => {
           <span className="text-body">Véhicules</span>
         </Link>
       )}
-      {hasRole(["secretaire", "chef_atelier", "super_admin", "caisse"]) && (
+      {hasRole(["secretaire", "super_admin", "gardien"]) && (
         <Link
           to="/billets-sortie"
           className={`nav-link d-flex align-items-center ${

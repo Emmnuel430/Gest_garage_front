@@ -14,7 +14,7 @@ const InfosUtilisateur = () => {
         return <i className="fa fa-user-edit fa-3x text-primary"></i>;
       case "chef_atelier":
         return <i className="fa fa-tools fa-3x text-primary"></i>;
-      case "caissier":
+      case "caisse":
         return <i className="fa fa-cash-register fa-3x text-primary"></i>;
       case "gardien":
         return <i className="fa fa-warehouse fa-3x text-primary"></i>;

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Layout from "../../components/Layout/Layout";
 import Loader from "../../components/Layout/Loader";
 import HeaderWithFilter from "../../components/Layout/HeaderWithFilter";
-import { Button, Modal, Table } from "react-bootstrap";
+import { Button, Modal, Table, Container, Row, Col } from "react-bootstrap";
 import { format } from "date-fns";
 import moment from "moment";
 
@@ -276,136 +276,156 @@ const Vehicule = () => {
         )}
       </div>
 
-      <Modal show={showDetailsModal} onHide={handleCloseModal} centered>
+      <Modal
+        show={showDetailsModal}
+        onHide={handleCloseModal}
+        size="lg"
+        centered
+      >
         <Modal.Header closeButton>
           <Modal.Title>Détails du véhicule</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {selectedVehicule && (
-            <>
-              <p>
-                <strong>Immatriculation :</strong>{" "}
-                {selectedVehicule.immatriculation}
-              </p>
-              <p>
-                <strong>Client :</strong> {selectedVehicule.client_nom || "N/A"}{" "}
-                ({selectedVehicule.client_tel || "N/A"})
-              </p>
-              <p>
-                <strong>Marque / Modèle :</strong>{" "}
-                <strong>{selectedVehicule.marque}</strong>{" "}
-                {selectedVehicule.modele}
-              </p>
-              <p>
-                <strong>Fiche entrée :</strong>{" "}
-                <a
-                  href={`${process.env.REACT_APP_API_BASE_URL_STORAGE}/${selectedVehicule.fiche_entree_vehicule}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-sm btn-outline-primary"
-                >
-                  Voir le PDF
-                </a>
-              </p>
-              {/* ---------------------------------- */}
-              <hr />
-              <h5>Mécanicien</h5>
-              <p>
-                <strong>Nom :</strong> {selectedVehicule.mecanicien.prenom}{" "}
-                {selectedVehicule.mecanicien.nom}
-              </p>
-              <p>
-                <strong>Type :</strong> {selectedVehicule.mecanicien.type}
-              </p>
-              <p>
-                <strong>Contact :</strong> {selectedVehicule.mecanicien.contact}
-              </p>
-              {/* ---------------------------------- */}
-              <hr />
-              <h5>Réceptions</h5>
-              {selectedVehicule.receptions.map((r) => (
-                <div key={r.id} className="mb-3">
+            <Container fluid>
+              <Row>
+                <Col md={6}>
+                  <h5>Informations véhicule</h5>
                   <p>
-                    <strong>Date arrivée :</strong>{" "}
-                    {format(new Date(r.date_arrivee), "dd/MM/yyyy HH:mm")}
+                    <strong>Immatriculation :</strong>{" "}
+                    {selectedVehicule.immatriculation}
                   </p>
                   <p>
-                    <strong>Motif :</strong> {r.motif_visite}
+                    <strong>Client :</strong>{" "}
+                    {selectedVehicule.client_nom || "N/A"} (
+                    {selectedVehicule.client_tel || "N/A"})
                   </p>
                   <p>
-                    <strong>Fiche réception :</strong>{" "}
+                    <strong>Marque / Modèle :</strong>{" "}
+                    <strong>{selectedVehicule.marque}</strong>{" "}
+                    {selectedVehicule.modele}
+                  </p>
+                  <p>
+                    <strong>Fiche d’entrée :</strong>{" "}
                     <a
-                      href={`${process.env.REACT_APP_API_BASE_URL_STORAGE}/${r.fiche_reception_vehicule}`}
+                      href={`${process.env.REACT_APP_API_BASE_URL_STORAGE}/${selectedVehicule.fiche_entree_vehicule}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="btn btn-sm btn-outline-secondary"
+                      className="btn btn-sm btn-outline-primary"
                     >
                       Voir le PDF
                     </a>
                   </p>
-                  {r.reparation && (
-                    <>
+                </Col>
+
+                <Col md={6}>
+                  <h5>Mécanicien</h5>
+                  <p>
+                    <strong>Nom :</strong> {selectedVehicule.mecanicien.prenom}{" "}
+                    {selectedVehicule.mecanicien.nom}
+                  </p>
+                  <p>
+                    <strong>Type :</strong> {selectedVehicule.mecanicien.type}
+                  </p>
+                  <p>
+                    <strong>Contact :</strong>{" "}
+                    {selectedVehicule.mecanicien.contact}
+                  </p>
+                </Col>
+              </Row>
+
+              <hr />
+              <h5>Historique des Réceptions</h5>
+              {selectedVehicule.receptions.map((r) => (
+                <div
+                  key={r.id}
+                  className="mb-4 border p-3 rounded shadow-sm bg-body"
+                >
+                  <Row>
+                    <Col md={6}>
                       <p>
-                        <strong>Reparation :</strong>{" "}
-                        <span
-                          className={`badge ${
-                            r.reparation.statut === "termine"
-                              ? "bg-success"
-                              : "bg-warning text-dark"
-                          }`}
-                        >
-                          {r.reparation.statut === "termine"
-                            ? "Terminé"
-                            : "En cours"}
-                        </span>
+                        <strong>Date d’arrivée :</strong>{" "}
+                        {format(new Date(r.date_arrivee), "dd/MM/yyyy HH:mm")}
                       </p>
-                    </>
-                  )}
-                  {r.facture?.date_generation && (
-                    <>
                       <p>
-                        <strong>Montant :</strong> {r.facture.montant} FCFA
+                        <strong>Motif :</strong> {r.motif_visite}
                       </p>
                       <p>
-                        <strong>Date paiement :</strong>{" "}
-                        {r.facture.date_paiement
-                          ? moment(r.facture.date_paiement).format(
-                              "DD/MM/YYYY HH:mm"
-                            )
-                          : "N/A"}
-                      </p>
-                      <p>
-                        <strong>Reçu :</strong>{" "}
+                        <strong>Fiche réception :</strong>{" "}
                         <a
-                          href={`${process.env.REACT_APP_API_BASE_URL_STORAGE}/${r.facture.recu}`}
+                          href={`${process.env.REACT_APP_API_BASE_URL_STORAGE}/${r.fiche_reception_vehicule}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="btn btn-sm btn-outline-success"
+                          className="btn btn-sm btn-outline-secondary"
                         >
-                          Voir le reçu
+                          Voir le PDF
                         </a>
                       </p>
-                      <hr />
-                      {r.billet_sortie && (
+                    </Col>
+
+                    <Col md={6}>
+                      {r.reparation && (
+                        <p>
+                          <strong>Réparation :</strong>{" "}
+                          <span
+                            className={`badge ${
+                              r.reparation.statut === "termine"
+                                ? "bg-success"
+                                : "bg-warning text-dark"
+                            }`}
+                          >
+                            {r.reparation.statut === "termine"
+                              ? "Terminé"
+                              : "En cours"}
+                          </span>
+                        </p>
+                      )}
+
+                      {r.facture?.date_generation && (
                         <>
                           <p>
-                            <strong>Billet de sortie :</strong>{" "}
+                            <strong>Montant :</strong> {r.facture.montant} FCFA
+                          </p>
+                          <p>
+                            <strong>Date paiement :</strong>{" "}
+                            {r.facture.date_paiement
+                              ? moment(r.facture.date_paiement).format(
+                                  "DD/MM/YYYY HH:mm"
+                                )
+                              : "N/A"}
+                          </p>
+                          <p>
+                            <strong>Reçu :</strong>{" "}
                             <a
-                              href={`${process.env.REACT_APP_API_BASE_URL_STORAGE}/${r.billet_sortie.fiche_sortie_vehicule}`}
+                              href={`${process.env.REACT_APP_API_BASE_URL_STORAGE}/${r.facture.recu}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="btn btn-sm btn-outline-success"
                             >
-                              Voir le billet
+                              Voir le reçu
                             </a>
                           </p>
                         </>
                       )}
-                    </>
-                  )}
+
+                      {r.billet_sortie && (
+                        <p>
+                          <strong>Billet de sortie :</strong>{" "}
+                          <a
+                            href={`${process.env.REACT_APP_API_BASE_URL_STORAGE}/${r.billet_sortie.fiche_sortie_vehicule}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-sm btn-outline-success"
+                          >
+                            Voir le billet
+                          </a>
+                        </p>
+                      )}
+                    </Col>
+                  </Row>
                 </div>
               ))}
-            </>
+            </Container>
           )}
         </Modal.Body>
       </Modal>

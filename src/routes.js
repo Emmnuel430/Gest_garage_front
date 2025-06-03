@@ -130,7 +130,7 @@ const AppRoutes = () => {
           element={
             <Protected
               Cmp={BilletsSortie}
-              roles={["secretaire", "chef_atelier", "super_admin", "caisse"]}
+              roles={["secretaire", "super_admin", "gardien"]}
             />
           }
         />
@@ -176,7 +176,7 @@ const AppRoutes = () => {
           element={
             <Protected
               Cmp={Vehicules}
-              roles={["super_admin", "secretaire", "chef_atelier"]}
+              roles={["super_admin", "secretaire", "chef_atelier", "caisse"]}
             />
           }
         />
