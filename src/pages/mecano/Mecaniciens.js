@@ -172,6 +172,13 @@ const Mecaniciens = () => {
       mecanicien.prenom.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  function formatStatut(statut) {
+    if (!statut) return "";
+    return statut
+      .split("_") // coupe par "_"
+      .join(" "); // re-colle avec des espaces
+  }
+
   return (
     <Layout>
       <div className="container mt-2">
@@ -251,29 +258,31 @@ const Mecaniciens = () => {
                           )}
                         </td>
                         <td>{formatPhoneNumber(mecanicien.contact)}</td>
-                        <td className="table-operations d-flex justify-content-center">
-                          <button
-                            onClick={() => handleShowDetails(mecanicien)}
-                            className="btn btn-info btn-sm me-2"
-                          >
-                            <i className="fas fa-eye"></i>
-                          </button>
-                          {/* Lien pour modifier l'utilisateur */}
-                          <button
-                            onClick={() => handleOpenUpdateModal(mecanicien)}
-                            className="btn btn-warning btn-sm me-2"
-                          >
-                            <i className="fas fa-edit"></i>
-                          </button>
-                          {/* Bouton pour supprimer l'utilisateur (si ce n'est pas l'utilisateur connecté) */}
+                        <td className="table-operations">
+                          <div className="d-flex align-items-stretch justify-content-center gap-2 h-100">
+                            <button
+                              onClick={() => handleShowDetails(mecanicien)}
+                              className="btn btn-info btn-sm me-2"
+                            >
+                              <i className="fas fa-eye"></i>
+                            </button>
+                            {/* Lien pour modifier l'utilisateur */}
+                            <button
+                              onClick={() => handleOpenUpdateModal(mecanicien)}
+                              className="btn btn-warning btn-sm me-2"
+                            >
+                              <i className="fas fa-edit"></i>
+                            </button>
+                            {/* Bouton pour supprimer l'utilisateur (si ce n'est pas l'utilisateur connecté) */}
 
-                          <Button
-                            variant="danger"
-                            size="sm"
-                            onClick={() => handleOpenModal(mecanicien)} // Ouvre le modal pour la suppression
-                          >
-                            <i className="fas fa-trash"></i>
-                          </Button>
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              onClick={() => handleOpenModal(mecanicien)} // Ouvre le modal pour la suppression
+                            >
+                              <i className="fas fa-trash"></i>
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -457,7 +466,7 @@ const Mecaniciens = () => {
                                         : "bg-warning"
                                     }`}
                                   >
-                                    {rep.statut}
+                                    {formatStatut(rep.statut)}
                                   </span>
                                 </td>
                               </tr>

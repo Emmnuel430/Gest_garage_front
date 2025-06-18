@@ -176,6 +176,17 @@ const SidebarLinks = ({ user }) => {
           </div>
         </Link>
       )}
+      {hasRole(["super_admin"]) && (
+        <Link
+          to="/parametres"
+          className={`nav-link d-flex align-items-center ${
+            isActive("/parametres") ? "active bg-body-secondary fw-bold" : ""
+          }`}
+        >
+          <i className="fa fa-cogs me-2"></i>
+          <span className="text-body">Paramètres</span>
+        </Link>
+      )}
     </div>
   );
 };

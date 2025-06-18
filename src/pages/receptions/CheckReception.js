@@ -239,32 +239,34 @@ const CheckReception = () => {
                               {statutLabel[reception.statut]}
                             </span>
                           </td>
-                          <td className="table-operations d-flex justify-content-center">
-                            <button
-                              onClick={() => handleShowDetails(reception)}
-                              className="btn btn-info btn-sm me-2"
-                              disabled={isDisabled}
-                            >
-                              <i className="fas fa-eye"></i>
-                            </button>
-                            <Button
-                              variant="warning"
-                              size="sm"
-                              disabled={isDisabled}
-                              onClick={() => handleOpenUpdateModal(reception)}
-                              className=" me-2"
-                            >
-                              <i className="fas fa-pencil-alt"></i>
-                            </Button>
+                          <td className="table-operations">
+                            <div className="d-flex align-items-stretch justify-content-center gap-2 h-100">
+                              <button
+                                onClick={() => handleShowDetails(reception)}
+                                className="btn btn-info btn-sm me-2"
+                                disabled={isDisabled}
+                              >
+                                <i className="fas fa-eye"></i>
+                              </button>
+                              <Button
+                                variant="warning"
+                                size="sm"
+                                disabled={isDisabled}
+                                onClick={() => handleOpenUpdateModal(reception)}
+                                className=" me-2"
+                              >
+                                <i className="fas fa-pencil-alt"></i>
+                              </Button>
 
-                            <Button
-                              variant="danger"
-                              size="sm"
-                              onClick={() => handleOpenModal(reception)}
-                              disabled={isDisabled}
-                            >
-                              <i className="fas fa-trash"></i>
-                            </Button>
+                              <Button
+                                variant="danger"
+                                size="sm"
+                                onClick={() => handleOpenModal(reception)}
+                                disabled={isDisabled}
+                              >
+                                <i className="fas fa-trash"></i>
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       );

@@ -211,25 +211,25 @@ const Receptions = () => {
                               {statutLabel[reception.statut]}
                             </span>
                           </td>
-                          <td
-                            className={`table-operations d-flex justify-content-center`}
-                          >
-                            <button
-                              onClick={() => handleShowDetails(reception)}
-                              className="btn btn-info btn-sm me-2"
-                              disabled={isDisabled}
-                            >
-                              <i className="fas fa-eye"></i>
-                            </button>
+                          <td className={`table-operations`}>
+                            <div className="d-flex align-items-stretch justify-content-center gap-2 h-100">
+                              <button
+                                onClick={() => handleShowDetails(reception)}
+                                className="btn btn-info btn-sm me-2"
+                                disabled={isDisabled}
+                              >
+                                <i className="fas fa-eye"></i>
+                              </button>
 
-                            <Button
-                              variant="danger"
-                              size="sm"
-                              onClick={() => handleOpenModal(reception)}
-                              disabled={isDisabled}
-                            >
-                              <i className="fas fa-trash"></i>
-                            </Button>
+                              <Button
+                                variant="danger"
+                                size="sm"
+                                onClick={() => handleOpenModal(reception)}
+                                disabled={isDisabled}
+                              >
+                                <i className="fas fa-trash"></i>
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       );

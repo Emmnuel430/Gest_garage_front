@@ -30,6 +30,7 @@ import MecanicienUpdate from "./pages/mecano/MecanicienUpdate";
 import Vehicules from "./pages/vehicule/Vehicules";
 // ----
 import Logs from "./pages/Logs";
+import Parametres from "./pages/Parametres";
 
 const AppRoutes = () => {
   return (
@@ -45,31 +46,19 @@ const AppRoutes = () => {
         <Route
           path="/register"
           element={
-            <Protected
-              Cmp={Register}
-              adminOnly
-              roles={["secretaire", "super_admin"]}
-            />
+            <Protected Cmp={Register} adminOnly roles={["super_admin"]} />
           }
         />
         <Route
           path="/utilisateurs"
           element={
-            <Protected
-              Cmp={UserList}
-              adminOnly
-              roles={["secretaire", "super_admin"]}
-            />
+            <Protected Cmp={UserList} adminOnly roles={["super_admin"]} />
           }
         />
         <Route
           path="/update/user/:id"
           element={
-            <Protected
-              Cmp={UserUpdate}
-              adminOnly
-              roles={["secretaire", "super_admin"]}
-            />
+            <Protected Cmp={UserUpdate} adminOnly roles={["super_admin"]} />
           }
         />
         {/* ------------------------ */}
@@ -181,16 +170,16 @@ const AppRoutes = () => {
           }
         />
 
+        <Route
+          path="/parametres"
+          element={
+            <Protected Cmp={Parametres} adminOnly roles={["super_admin"]} />
+          }
+        />
         {/* Logs */}
         <Route
           path="/logs"
-          element={
-            <Protected
-              Cmp={Logs}
-              adminOnly
-              roles={["super_admin", "secretaire"]}
-            />
-          }
+          element={<Protected Cmp={Logs} adminOnly roles={["super_admin"]} />}
         />
 
         {/* Si l'URL n'est pas définie, renvoyer l'utilisateur vers la page de connexion */}

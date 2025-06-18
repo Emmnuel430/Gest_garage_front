@@ -191,24 +191,26 @@ const UserList = () => {
                             {formatRole(user.role)}
                           </span>
                         </td>
-                        <td className="table-operations d-flex justify-content-center">
-                          {/* Lien pour modifier l'utilisateur */}
-                          <Link
-                            to={`/update/user/${user.id}`}
-                            className="btn btn-warning btn-sm me-2"
-                          >
-                            Modifier
-                          </Link>
-                          {/* Bouton pour supprimer l'utilisateur (si ce n'est pas l'utilisateur connecté) */}
-                          {user.id !== userInfo.id && (
-                            <Button
-                              variant="danger"
-                              size="sm"
-                              onClick={() => handleOpenModal(user)} // Ouvre le modal pour la suppression
+                        <td className="table-operations">
+                          <div className="d-flex align-items-stretch justify-content-center gap-2 h-100">
+                            {/* Lien pour modifier l'utilisateur */}
+                            <Link
+                              to={`/update/user/${user.id}`}
+                              className="btn btn-warning btn-sm me-2"
                             >
-                              <i className="fas fa-trash"></i>
-                            </Button>
-                          )}
+                              Modifier
+                            </Link>
+                            {/* Bouton pour supprimer l'utilisateur (si ce n'est pas l'utilisateur connecté) */}
+                            {user.id !== userInfo.id && (
+                              <Button
+                                variant="danger"
+                                size="sm"
+                                onClick={() => handleOpenModal(user)} // Ouvre le modal pour la suppression
+                              >
+                                <i className="fas fa-trash"></i>
+                              </Button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))
