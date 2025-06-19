@@ -233,7 +233,8 @@ const AddMecanicien = () => {
             <br />
             <strong>Prénom :</strong> {mecanicien.prenom}
             <br />
-            <strong>Type :</strong> {mecanicien.type}
+            <strong>Type :</strong>{" "}
+            <span className="text-capitalize">{mecanicien.type}</span>
             <br />
           </p>
         }

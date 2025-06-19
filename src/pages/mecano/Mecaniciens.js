@@ -311,94 +311,90 @@ const Mecaniciens = () => {
         <Modal.Body>
           {selectedMecanicien && (
             <div className="container">
-              <div className="row mb-2">
-                <div className="col-6 fw-bold">ID :</div>
-                <div className="col-6">MEC-{selectedMecanicien.id}</div>
+              {/* En-tête mécanicien */}
+              <div className="text-center mb-4">
+                <h2 className="text-primary mb-1">
+                  {selectedMecanicien.nom} {selectedMecanicien.prenom}
+                </h2>
+                <h6 className="text-muted mb-2">
+                  ID MEC-{selectedMecanicien.id}
+                </h6>
+                <span
+                  className={`badge fs-6 ${
+                    selectedMecanicien.type === "interne"
+                      ? "bg-success-subtle text-success"
+                      : "bg-info-subtle text-info"
+                  }`}
+                >
+                  {selectedMecanicien.type === "interne"
+                    ? "👷 Mécanicien Interne"
+                    : "🔧 Mécanicien Externe"}
+                </span>
               </div>
-              <div className="row mb-2">
-                <div className="col-6 fw-bold">Nom :</div>
-                <div className="col-6">{selectedMecanicien.nom || "N/A"}</div>
-              </div>
-              <div className="row mb-2">
-                <div className="col-6 fw-bold">Prénom(s) :</div>
-                <div className="col-6">
-                  {selectedMecanicien.prenom || "N/A"}
-                </div>
-              </div>
-              <div className="row mb-2">
-                <div className="col-6 fw-bold">Type :</div>
-                <div className="col-6">
-                  {selectedMecanicien.type === "interne" ? (
-                    <span className="badge bg-success">Interne</span>
-                  ) : (
-                    <span className="badge bg-info">Externe</span> || "N/A"
-                  )}
+
+              {/* Informations personnelles */}
+              <div className="bg-body rounded shadow-sm p-3 mb-3">
+                <h5 className="mb-3">👤 Informations personnelles</h5>
+                <div className="row">
+                  <div className="col-md-6 mb-2">
+                    <strong>Expérience :</strong>{" "}
+                    {selectedMecanicien.experience || "N/A"} ans
+                  </div>
+                  <div className="col-md-6 mb-2">
+                    <strong>Numéro de téléphone :</strong>{" "}
+                    {formatPhoneNumber(selectedMecanicien.contact) || "N/A"}
+                  </div>
+                  <div className="col-md-6 mb-2">
+                    <strong>Contact d'urgence :</strong>{" "}
+                    {formatPhoneNumber(selectedMecanicien.contact_urgence) ||
+                      "N/A"}
+                  </div>
+                  <div className="col-md-6 mb-2 text-capitalize">
+                    <strong>Véhicules maîtrisés :</strong>{" "}
+                    {selectedMecanicien.vehicules_maitrises || "N/A"}
+                  </div>
                 </div>
               </div>
 
-              <div className="row mb-2">
-                <div className="col-6 fw-bold">Experience:</div>
-                <div className="col-6">
-                  {selectedMecanicien.experience || "N/A"} ans
-                </div>
-              </div>
-              <div className="row mb-2">
-                <div className="col-6 fw-bold">Numéro de téléphone :</div>
-                <div className="col-6">
-                  {formatPhoneNumber(selectedMecanicien.contact) || "N/A"}
-                </div>
-              </div>
-              <div className="row mb-2">
-                <div className="col-6 fw-bold">Contact d'urgence :</div>
-                <div className="col-6">
-                  {formatPhoneNumber(selectedMecanicien.contact_urgence) ||
-                    "N/A"}
+              {/* Historique */}
+              <div className="bg-body rounded shadow-sm p-3 mb-3">
+                <h5 className="mb-3">📅 Historique</h5>
+                <div className="row">
+                  <div className="col-md-6 mb-2">
+                    <strong>Date d'ajout :</strong>{" "}
+                    {format(
+                      new Date(selectedMecanicien.created_at),
+                      "dd/MM/yyyy HH:mm:ss"
+                    )}
+                  </div>
+                  <div className="col-md-6 mb-2">
+                    <strong>Dernière mise à jour :</strong>{" "}
+                    {selectedMecanicien.updated_at ===
+                    selectedMecanicien.created_at
+                      ? "-"
+                      : format(
+                          new Date(selectedMecanicien.updated_at),
+                          "dd/MM/yyyy HH:mm:ss"
+                        )}
+                  </div>
                 </div>
               </div>
 
-              <div className="row mb-2">
-                <div className="col-6 fw-bold">Vehicules maitrisés :</div>
-                <div className="col-6 text-capitalize">
-                  {selectedMecanicien.vehicules_maitrises}
-                </div>
-              </div>
-              <div className="row mb-2">
-                <div className="col-6 fw-bold">Date d'ajout :</div>
-                <div className="col-6">
-                  {format(
-                    new Date(selectedMecanicien.created_at),
-                    "dd/MM/yyyy HH:mm:ss"
-                  )}
-                </div>
-              </div>
-              <div className="row mb-2">
-                <div className="col-6 fw-bold">Dernière mise à jour:</div>
-                <div className="col-6">
-                  {selectedMecanicien.updated_at ===
-                  selectedMecanicien.created_at
-                    ? "-"
-                    : format(
-                        new Date(selectedMecanicien.updated_at),
-                        "dd/MM/yyyy HH:mm:ss"
-                      )}
-                </div>
-              </div>
-              <div className="row mb-2">
-                <div className="col-6 fw-bold">Fiche :</div>
-                <div className="col-6 text-capitalize">
-                  {selectedMecanicien.fiche_enrolement ? (
-                    <Link
-                      to={`${process.env.REACT_APP_API_BASE_URL_STORAGE}/${selectedMecanicien.fiche_enrolement}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn btn-outline-primary btn-sm"
-                    >
-                      Voir la fiche
-                    </Link>
-                  ) : (
-                    "Non disponible"
-                  )}
-                </div>
+              {/* Fiche d'enrôlement */}
+              <div className="bg-body rounded shadow-sm p-3 mb-3">
+                <h5 className="mb-3">📄 Fiche d'enrôlement</h5>
+                {selectedMecanicien.fiche_enrolement ? (
+                  <Link
+                    to={`${process.env.REACT_APP_API_BASE_URL_STORAGE}/${selectedMecanicien.fiche_enrolement}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-outline-primary btn-sm"
+                  >
+                    Voir la fiche
+                  </Link>
+                ) : (
+                  <span className="text-muted">Non disponible</span>
+                )}
               </div>
 
               {selectedMecanicien.reparations &&
