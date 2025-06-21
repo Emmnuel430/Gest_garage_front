@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Table } from "react-bootstrap";
 import Loader from "../../components/Layout/Loader";
+import { fetchWithToken } from "../../utils/fetchWithToken";
 
 const Recents = () => {
   const [receptions, setReceptions] = useState([]);
@@ -17,7 +18,7 @@ const Recents = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(
+      const response = await fetchWithToken(
         `${process.env.REACT_APP_API_BASE_URL}/dashboard_stats`
       );
       if (!response.ok) {
@@ -105,7 +106,11 @@ const Recents = () => {
                           {statutLabel[item.statut]}
                         </span>
                       </td>
-                      <td>{item.motif_visite}</td>
+                      <td>
+                        {item.motif_visite.length > 20
+                          ? item.motif_visite.substring(0, 20) + "..."
+                          : item.motif_visite}
+                      </td>
                       <td>{item.date_arrivee}</td>
 
                       {/* <td>

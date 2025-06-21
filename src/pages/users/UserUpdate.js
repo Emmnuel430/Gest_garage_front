@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Layout from "../../components/Layout/Layout";
 import Back from "../../components/Layout/Back";
 import ConfirmPopup from "../../components/Layout/ConfirmPopup"; // Importation du popup de confirmation
+import { fetchWithToken } from "../../utils/fetchWithToken";
 
 const UserUpdate = () => {
   // Récupération de l'ID de l'utilisateur à partir des paramètres d'URL
@@ -19,6 +20,7 @@ const UserUpdate = () => {
   const [loading, setLoading] = useState(false); // État pour gérer l'état de chargement
   const [showModal, setShowModal] = useState(false); // État pour afficher ou non le modal de confirmation
   const [showPasswordInput, setShowPasswordInput] = useState(false); // État pour afficher ou masquer le champ de mot de passe
+  const [showPassword, setShowPassword] = useState(false);
 
   const userInfo = JSON.parse(localStorage.getItem("user-info")); // Récupérer les informations de l'utilisateur connecté
   const userId = userInfo ? userInfo.id : null; // Récupérer l'ID de l'utilisateur connecté
@@ -29,7 +31,7 @@ const UserUpdate = () => {
     const fetchUser = async () => {
       setError(""); // Réinitialisation de l'erreur avant chaque appel
       try {
-        const response = await fetch(
+        const response = await fetchWithToken(
           `${process.env.REACT_APP_API_BASE_URL}/user/${id}`
         ); // Requête pour récupérer l'utilisateur
         if (!response.ok) {
@@ -87,7 +89,7 @@ const UserUpdate = () => {
         body.role = role;
       }
 
-      const response = await fetch(
+      const response = await fetchWithToken(
         `${process.env.REACT_APP_API_BASE_URL}/update_user/${id}`,
         {
           method: "POST",
@@ -101,8 +103,16 @@ const UserUpdate = () => {
         }
       );
 
+      const data = await response.json(); // Parse de la réponse JSON
+      console.log(data.user); // Pour le débogage
+
       if (response.ok) {
         alert("Données mises à jour !");
+        if (parseInt(userId) === parseInt(id)) {
+          console.log("Mise à jour de l'utilisateur connecté", data.user);
+          localStorage.setItem("user-info", JSON.stringify(data.user));
+          // window.location.reload();
+        }
         navigate("/utilisateurs"); // Redirige vers la liste des utilisateurs après la mise à jour
       } else {
         const errorResponse = await response.json();
@@ -211,15 +221,24 @@ const UserUpdate = () => {
             <label htmlFor="newPassword" className="form-label">
               Nouveau mot de passe
             </label>
-            <input
-              type="password"
-              id="newPassword"
-              name="newPassword"
-              className="form-control"
-              placeholder="Nouveau mot de passe *"
-              value={user.newPassword}
-              onChange={handleChange}
-            />
+            <div className="input-group">
+              <input
+                type={showPassword ? "text" : "password"}
+                id="newPassword"
+                name="newPassword"
+                className="form-control"
+                placeholder="Nouveau mot de passe *"
+                value={user.newPassword}
+                onChange={handleChange}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="btn btn-outline-secondary"
+              >
+                {showPassword ? "👁️" : "🙈"}
+              </button>
+            </div>
             <small className="text-muted">
               * Laissez vide si vous ne souhaitez pas modifier le mot de passe.
             </small>

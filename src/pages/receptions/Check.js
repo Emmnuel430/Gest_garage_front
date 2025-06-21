@@ -1,67 +1,72 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ToastMessage from "../../components/Layout/ToastMessage";
+import { slugify } from "../../utils/helpers"; // tu peux faire un helper pour slugifier
 
-const items = [
-  { label: "Essuie-glace", name: "essuie_glace" },
-  { label: "Vitres avant", name: "vitres_avant" },
-  { label: "Vitres arrière", name: "vitres_arriere" },
-  { label: "Phares avant", name: "phares_avant" },
-  { label: "Phares arrière", name: "phares_arriere" },
-  { label: "Pneus de secours", name: "pneus_secours" },
-  { label: "Cric", name: "cric" },
-  { label: "Peinture", name: "peinture" },
-  { label: "Rétroviseur", name: "retroviseur" },
-  { label: "Kit de pharmacie", name: "kit_pharmacie" },
-  { label: "Triangle", name: "triangle" },
-];
+const VALUE_OPTIONS = {
+  presence: [
+    { label: "Présent", value: "présent" },
+    { label: "Absent", value: "absent" },
+  ],
+  etat: [
+    { label: "Bon", value: "bon" },
+    { label: "Mauvais", value: "mauvais" },
+    { label: "Absent", value: "absent" },
+  ],
+};
 
 const Check = ({ reception, onClose, onUpdate }) => {
-  const check = reception.check_reception || {};
-
-  const [checkData, setCheckData] = useState({
-    id: reception.id,
-    essuie_glace: check.essuie_glace || false,
-    vitres_avant: check.vitres_avant || false,
-    vitres_arriere: check.vitres_arriere || false,
-    phares_avant: check.phares_avant || false,
-    phares_arriere: check.phares_arriere || false,
-    pneus_secours: check.pneus_secours || false,
-    cric: check.cric || false,
-    peinture: check.peinture || false,
-    retroviseur: check.retroviseur || false,
-    kit_pharmacie: check.kit_pharmacie || false,
-    triangle: check.triangle || false,
-    remarques: check.remarques || "",
-  });
-
+  const [checkItems, setCheckItems] = useState([]);
+  const [checkData, setCheckData] = useState({ remarques: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Charger les check_items depuis l'API
+  useEffect(() => {
+    fetch(`${process.env.REACT_APP_API_BASE_URL}/check-items`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Erreur réseau");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setCheckItems(data);
+      })
+      .catch(() => {
+        setError("Erreur lors du chargement des éléments à vérifier");
+      });
+  }, []);
+
+  useEffect(() => {
+    if (!reception || !reception.check_reception) {
+      setCheckData({ remarques: "" });
+      return;
+    }
+
+    const check = reception.check_reception;
+    const data = { remarques: check.remarques || "" };
+
+    // On boucle sur les items du check (ex: check.items)
+    if (check.items) {
+      check.items.forEach((checkItem) => {
+        // slugify correspond à la clé côté front
+        const key = slugify(checkItem.item.nom);
+        data[key] = checkItem.valeur;
+      });
+    }
+
+    setCheckData(data);
+  }, [reception]);
+
   const handleChange = (e) => {
-    const { name, type, checked, value } = e.target;
-    setCheckData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    const { name, value } = e.target;
+    setCheckData((prev) => ({ ...prev, [name]: value }));
   };
-
-  const handleCheckAll = (e) => {
-    const { checked } = e.target;
-    const updatedChecks = Object.fromEntries(
-      items.map((item) => [item.name, checked])
-    );
-    setCheckData((prev) => ({
-      ...prev,
-      ...updatedChecks,
-    }));
-  };
-
-  const isAllChecked = items.every((item) => checkData[item.name]);
 
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      await onUpdate(checkData);
+      await onUpdate({ ...checkData, id: reception.id });
     } catch (err) {
       setError("Erreur lors de la soumission");
     } finally {
@@ -74,41 +79,32 @@ const Check = ({ reception, onClose, onUpdate }) => {
       {error && <ToastMessage message={error} onClose={() => setError(null)} />}
 
       <div className="row">
-        {/* Checkbox "Tout valider" */}
-        <div className="col-12 mb-3">
-          <div className="form-check">
-            <input
-              type="checkbox"
-              id="checkAll"
-              className="form-check-input"
-              checked={isAllChecked}
-              onChange={handleCheckAll}
-            />
+        {checkItems.map((item, idx) => {
+          const name = slugify(item.nom); // ex: "vitres_avant"
+          const options = VALUE_OPTIONS[item.type] || [];
 
-            <label className="form-check-label fw-bold" htmlFor="checkAll">
-              Tout valider
-            </label>
-          </div>
-        </div>
-
-        {/* Checkboxes individuelles */}
-        {items.map((item, idx) => (
-          <div className="col-md-6 mb-3" key={idx}>
-            <div className="form-check">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                id={item.name}
-                name={item.name}
-                checked={checkData[item.name]}
-                onChange={handleChange}
-              />
-              <label className="form-check-label" htmlFor={item.name}>
-                {item.label}
+          return (
+            <div className="col-md-6 mb-3" key={idx}>
+              <label className="form-label fw-bold text-capitalize">
+                {item.nom}
               </label>
+              <select
+                name={name}
+                className="form-select"
+                value={checkData[name] || ""}
+                onChange={handleChange}
+                required
+              >
+                <option value="">-- Choisir --</option>
+                {options.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="mb-3">
@@ -137,7 +133,7 @@ const Check = ({ reception, onClose, onUpdate }) => {
               <i className="fas fa-spinner fa-spin"></i> Chargement...
             </span>
           ) : (
-            <span>Enregistrer</span>
+            "Enregistrer"
           )}
         </button>
       </div>

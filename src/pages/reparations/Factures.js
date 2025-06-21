@@ -6,6 +6,7 @@ import HeaderWithFilter from "../../components/Layout/HeaderWithFilter";
 import SearchBar from "../../components/Layout/SearchBar";
 import moment from "moment";
 import { format } from "date-fns";
+import { fetchWithToken } from "../../utils/fetchWithToken";
 
 const Factures = () => {
   const [factures, setFactures] = useState([]);
@@ -54,7 +55,7 @@ const Factures = () => {
   const fetchFactures = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
+      const response = await fetchWithToken(
         `${process.env.REACT_APP_API_BASE_URL}/liste_factures`
       );
       const data = await response.json();
@@ -71,7 +72,7 @@ const Factures = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(
+      const response = await fetchWithToken(
         `${process.env.REACT_APP_API_BASE_URL}/valider_paiement/${selectedFacture.id}`,
         {
           method: "POST",
@@ -100,7 +101,7 @@ const Factures = () => {
   const handleGenererFacture = async (factureId) => {
     setLoading(true);
     try {
-      const response = await fetch(
+      const response = await fetchWithToken(
         `${process.env.REACT_APP_API_BASE_URL}/generer_facture/${factureId}`,
         {
           method: "POST",
@@ -180,112 +181,103 @@ const Factures = () => {
               setSortedList={setSortedFactures}
               dateField="created_at"
             />
-            <div className="table-responsive">
-              <Table hover responsive className="centered-table">
-                <thead>
+            <Table hover responsive className="centered-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Actions</th>
+                  <th>Immat.</th>
+                  <th>Vehicule</th>
+                  <th>Client</th>
+                  <th>Statut</th>
+                  <th>Date de génération</th>
+                  <th>Générer</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredFactures.length === 0 ? (
                   <tr>
-                    <th>#</th>
-                    <th>Actions</th>
-                    <th>Immat.</th>
-                    <th>Vehicule</th>
-                    <th>Client</th>
-                    <th>Statut</th>
-                    <th>Date de génération</th>
-                    <th>Générer</th>
+                    <td colSpan="8" className="text-center">
+                      Aucune facture trouvée.
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {filteredFactures.length === 0 ? (
-                    <tr>
-                      <td colSpan="8" className="text-center">
-                        Aucune facture trouvée.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredFactures
-                      .sort(
-                        (a, b) =>
-                          new Date(b.created_at) - new Date(a.created_at)
-                      )
-                      .sort((a, b) => {
-                        const statutA = a.statut || "";
-                        const statutB = b.statut || "";
-                        return (
-                          ordreStatut.indexOf(statutA) -
-                          ordreStatut.indexOf(statutB)
-                        );
-                      })
+                ) : (
+                  filteredFactures
+                    .sort(
+                      (a, b) => new Date(b.created_at) - new Date(a.created_at)
+                    )
+                    .sort((a, b) => {
+                      const statutA = a.statut || "";
+                      const statutB = b.statut || "";
+                      return (
+                        ordreStatut.indexOf(statutA) -
+                        ordreStatut.indexOf(statutB)
+                      );
+                    })
 
-                      .map((facture) => (
-                        <tr key={facture.id}>
-                          <td>{facture.id}</td>
-                          <td className="d-flex gap-2 justify-content-center">
+                    .map((facture) => (
+                      <tr key={facture.id}>
+                        <td>{facture.id}</td>
+                        <td className="d-flex gap-2 justify-content-center">
+                          <Button
+                            variant="info"
+                            onClick={() => handleShowDetails(facture)}
+                            className="btn-sm"
+                          >
+                            <i className="fa fa-eye"></i>
+                          </Button>
+                          {facture.statut === "generee" && (
                             <Button
-                              variant="info"
-                              onClick={() => handleShowDetails(facture)}
-                              className="btn-sm"
+                              variant="success-outline"
+                              onClick={() => handleOpenModal(facture)}
+                              className="btn-sm border-success hover"
                             >
-                              <i className="fa fa-eye"></i>
+                              <i className="fa fa-check"></i>
                             </Button>
-                            {facture.statut === "generee" && (
-                              <Button
-                                variant="success-outline"
-                                onClick={() => handleOpenModal(facture)}
-                                className="btn-sm border-success hover"
-                              >
-                                <i className="fa fa-check"></i>
-                              </Button>
-                            )}
-                          </td>
-                          <td>
-                            {facture.reception?.vehicule?.immatriculation}
-                          </td>
-                          <td>
-                            <strong>
-                              {facture.reception?.vehicule?.marque}
-                            </strong>{" "}
-                            - <em>{facture.reception?.vehicule?.modele}</em>
-                          </td>
-                          <td>{facture.reception?.vehicule?.client_nom}</td>
-                          <td>
-                            <span
-                              className={`badge ${
-                                facture.statut === "payee"
-                                  ? "bg-success"
-                                  : "bg-warning text-dark"
-                              }`}
+                          )}
+                        </td>
+                        <td>{facture.reception?.vehicule?.immatriculation}</td>
+                        <td>
+                          <strong>{facture.reception?.vehicule?.marque}</strong>{" "}
+                          - <em>{facture.reception?.vehicule?.modele}</em>
+                        </td>
+                        <td>{facture.reception?.vehicule?.client_nom}</td>
+                        <td>
+                          <span
+                            className={`badge ${
+                              facture.statut === "payee"
+                                ? "bg-success"
+                                : "bg-warning text-dark"
+                            }`}
+                          >
+                            {facture.statut === "payee" ? "Payée" : "Non payée"}
+                          </span>
+                        </td>
+                        <td>
+                          {facture.date_generation
+                            ? moment(facture.date_generation).format(
+                                "DD/MM/YY HH:mm:ss"
+                              )
+                            : "-"}
+                        </td>
+                        <td>
+                          {facture.statut === "en_attente" ? (
+                            <Button
+                              variant="primary"
+                              className="btn-sm"
+                              onClick={() => handleShowConfirmModal(facture)}
                             >
-                              {facture.statut === "payee"
-                                ? "Payée"
-                                : "Non payée"}
-                            </span>
-                          </td>
-                          <td>
-                            {facture.date_generation
-                              ? moment(facture.date_generation).format(
-                                  "DD/MM/YY HH:mm:ss"
-                                )
-                              : "-"}
-                          </td>
-                          <td>
-                            {facture.statut === "en_attente" ? (
-                              <Button
-                                variant="primary"
-                                className="btn-sm"
-                                onClick={() => handleShowConfirmModal(facture)}
-                              >
-                                <i className="fa fa-file-invoice"></i>
-                              </Button>
-                            ) : (
-                              "✅"
-                            )}
-                          </td>
-                        </tr>
-                      ))
-                  )}
-                </tbody>
-              </Table>
-            </div>
+                              <i className="fa fa-file-invoice"></i>
+                            </Button>
+                          ) : (
+                            "✅"
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                )}
+              </tbody>
+            </Table>
           </>
         )}
       </div>
@@ -389,7 +381,7 @@ const Factures = () => {
                 <br />
                 <span>---------</span>
                 <br />
-                Motif de la réparation :{" "}
+                Motif de la visite :{" "}
                 <strong>
                   {selectedFacture.reception.motif_visite || "Non spécifié"}
                 </strong>

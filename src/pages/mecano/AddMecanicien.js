@@ -4,6 +4,7 @@ import Layout from "../../components/Layout/Layout";
 import Back from "../../components/Layout/Back";
 import ConfirmPopup from "../../components/Layout/ConfirmPopup";
 import ToastMessage from "../../components/Layout/ToastMessage";
+import { fetchWithToken } from "../../utils/fetchWithToken";
 
 const AddMecanicien = () => {
   const navigate = useNavigate();
@@ -56,7 +57,7 @@ const AddMecanicien = () => {
         user_id: userId,
       };
 
-      const response = await fetch(
+      const response = await fetchWithToken(
         `${process.env.REACT_APP_API_BASE_URL}/add_mecanicien`,
         {
           method: "POST",

@@ -4,6 +4,7 @@ import { Table } from "react-bootstrap";
 import Loader from "../../components/Layout/Loader"; // Assurez-vous que le chemin est correct
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale"; // Importation pour la localisation française
+import { fetchWithToken } from "../../utils/fetchWithToken"; // Fonction utilitaire pour les appels API avec token
 
 const LastSection = () => {
   const [, setTimeState] = useState(Date.now()); // État pour forcer le re-rendu
@@ -31,7 +32,7 @@ const LastSection = () => {
   const fetchChronosEnCours = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
+      const response = await fetchWithToken(
         `${process.env.REACT_APP_API_BASE_URL}/dashboard_stats`
       );
       if (!response.ok) {
@@ -49,7 +50,7 @@ const LastSection = () => {
   const fetchFacturesImpayees = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
+      const response = await fetchWithToken(
         `${process.env.REACT_APP_API_BASE_URL}/dashboard_stats`
       );
       if (!response.ok) {
@@ -69,7 +70,7 @@ const LastSection = () => {
   const fetchLogs = async () => {
     setLoading(true); // Active le spinner global
     try {
-      const response = await fetch(
+      const response = await fetchWithToken(
         `${process.env.REACT_APP_API_BASE_URL}/dashboard_stats`
       ); // Appel API
       if (!response.ok) {
@@ -130,6 +131,10 @@ const LastSection = () => {
         return "M à j.";
       case "create":
         return "Créer";
+      case "pause":
+        return "Pause";
+      case "resume":
+        return "Reprendre";
       default:
         return "Action inconnue";
     }
@@ -146,8 +151,12 @@ const LastSection = () => {
         return "bg-danger";
       case "maj":
         return "bg-info";
-      default:
+      case "pause":
         return "bg-warning";
+      case "resume":
+        return "bg-success";
+      default:
+        return "bg-dark"; // Couleur par défaut pour les actions inconnues
     }
   };
 
@@ -166,7 +175,7 @@ const LastSection = () => {
         <>
           <div className="row g-4">
             {/* Factures impayée */}
-            <div className="col-sm-12 col-md-6 col-xl-4">
+            <div className="col-md-6 col-xl-4">
               <div className="h-100 bg-body rounded border p-4">
                 <div className="d-flex align-items-center justify-content-between mb-2">
                   <h6 className="mb-0">Factures impayées</h6>
@@ -234,7 +243,7 @@ const LastSection = () => {
               </div>
             </div>
             {/* Derniers logs */}
-            <div className="col-sm-12 col-md-6 col-xl-4">
+            <div className="col-md-6 col-xl-4">
               <div className="h-100 bg-body rounded border p-4">
                 <div className="d-flex align-items-center justify-content-between mb-4">
                   <h6 className="mb-0">Logs</h6>
@@ -282,7 +291,7 @@ const LastSection = () => {
               </div>
             </div>
             {/* Chronos en cours */}
-            <div className="col-sm-12 col-md-6 col-xl-4">
+            <div className="col-md-6 col-xl-4">
               <div className="h-100 bg-body rounded border p-4">
                 <div className="d-flex align-items-center justify-content-between mb-4">
                   <h6 className="mb-0">Chronos en cours</h6>

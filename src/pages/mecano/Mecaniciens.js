@@ -9,6 +9,7 @@ import ConfirmPopup from "../../components/Layout/ConfirmPopup"; // Composant de
 import SearchBar from "../../components/Layout/SearchBar"; // Composant pour la barre de recherche
 import { format } from "date-fns"; // Utilisation de la librairie date-fns pour formater les dates
 import MecanicienUpdate from "./MecanicienUpdate"; // Composant pour la mise à jour d'un mécanicien
+import { fetchWithToken } from "../../utils/fetchWithToken";
 
 const Mecaniciens = () => {
   // États locaux pour gérer les mécaniciens, l'état de chargement, les erreurs et les modals
@@ -38,7 +39,7 @@ const Mecaniciens = () => {
 
       try {
         // Requête pour récupérer la liste des mécaniciens
-        const response = await fetch(
+        const response = await fetchWithToken(
           `${process.env.REACT_APP_API_BASE_URL}/liste_mecaniciens`
         );
         if (!response.ok) {
@@ -93,7 +94,7 @@ const Mecaniciens = () => {
 
   const handleUpdateMecanicien = async (updatedMecanicien) => {
     try {
-      const response = await fetch(
+      const response = await fetchWithToken(
         `${process.env.REACT_APP_API_BASE_URL}/update_mecanicien/${updatedMecanicien.id}`,
         {
           method: "POST",
@@ -133,7 +134,7 @@ const Mecaniciens = () => {
 
     try {
       // Requête DELETE pour supprimer le mécanicien
-      const response = await fetch(
+      const response = await fetchWithToken(
         `${process.env.REACT_APP_API_BASE_URL}/delete_mecanicien/${selectedMecanicien.id}?user_id=${userId}`,
         {
           method: "DELETE", // Méthode de suppression
@@ -410,7 +411,6 @@ const Mecaniciens = () => {
                             <th>Immat.</th>
                             <th>Marque</th>
                             <th>Modèle</th>
-                            <th>Client</th>
                             <th>Date réception</th>
                             <th>Date de sortie</th>
                             <th>Statut</th>
@@ -434,9 +434,6 @@ const Mecaniciens = () => {
                                 </td>
                                 <td>
                                   {rep.reception?.vehicule?.modele || "N/A"}
-                                </td>
-                                <td>
-                                  {rep.reception?.vehicule?.client_nom || "N/A"}
                                 </td>
                                 <td>
                                   {rep.reception?.date_arrivee

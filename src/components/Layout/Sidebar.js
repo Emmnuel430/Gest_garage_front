@@ -31,8 +31,8 @@ const Sidebar = ({ user }) => {
           />
           <h3 className="m-0 ps-2 text-primary">
             {" "}
-            {/* Affichage du titre "Gest v1" */}
-            <strong>Gest v1</strong>
+            {/* Affichage du titre "Gest" */}
+            <strong>Gest v1.2</strong>
           </h3>
         </Link>
         {/* Section profil utilisateur */}

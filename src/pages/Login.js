@@ -20,49 +20,48 @@ const Login = () => {
   }, [navigate]);
 
   async function login(e) {
-    e.preventDefault(); // Empêche le rafraîchissement de la page
-    // Validation des entrées utilisateur
+    e.preventDefault();
+
     if (!pseudo || !password) {
       setError("Le pseudo et le mot de passe sont réquis");
       return;
     }
 
-    setError(""); // Réinitialise les erreurs si les validations passent
-    setLoading(true); // Active l'état de chargement
+    setError("");
+    setLoading(true);
 
-    // Appel à l'API pour tenter la connexion
     try {
-      let item = { pseudo, password };
+      const response = await fetch(
+        `${process.env.REACT_APP_API_BASE_URL}/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({ pseudo, password }),
+        }
+      );
 
-      let result = await fetch(`${process.env.REACT_APP_API_BASE_URL}/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify(item),
-      });
+      const result = await response.json();
 
-      result = await result.json();
-
-      // Gère une réponse d'erreur de l'API
-      if (result.error) {
-        setError(result.error); // Affiche un message d'erreur provenant de l'API
-        setLoading(false); // Désactive l'état de chargement
+      if (!response.ok || result.error) {
+        setError(result.error || "Échec de la connexion");
+        setLoading(false);
         return;
       }
 
-      // Stocke les informations utilisateur si la connexion réussit
       localStorage.setItem("user-info", JSON.stringify(result.user));
-      localStorage.setItem("token", result.access_token); // Stocke le token d'accès si nécessaire
+      localStorage.setItem("token", result.access_token);
 
-      setLoading(false); // Désactive l'état de chargement
-      navigate("/home"); // Redirige vers la page d'accueil ou tableau de bord
+      setLoading(false);
+      navigate("/home");
     } catch (e) {
-      setError("Une erreur inatendue s'est produite. Réessayez");
-      setLoading(false); // Désactive l'état de chargement
+      setError("Une erreur inattendue s'est produite.");
+      setLoading(false);
     }
   }
+
   return (
     <div>
       <section>

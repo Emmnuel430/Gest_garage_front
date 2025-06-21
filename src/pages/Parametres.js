@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Layout from "../components/Layout/Layout";
 import ToastMessage from "../components/Layout/ToastMessage";
+import { fetchWithToken } from "../utils/fetchWithToken";
 
 const Parametres = () => {
   const [tarifHoraire, setTarifHoraire] = useState("");
@@ -12,7 +13,7 @@ const Parametres = () => {
   useEffect(() => {
     const fetchTarif = async () => {
       try {
-        const response = await fetch(
+        const response = await fetchWithToken(
           `${process.env.REACT_APP_API_BASE_URL}/settings/tarif-horaire`
         );
         const data = await response.json();
@@ -32,7 +33,7 @@ const Parametres = () => {
     setError(null);
 
     try {
-      const response = await fetch(
+      const response = await fetchWithToken(
         `${process.env.REACT_APP_API_BASE_URL}/settings/tarif-horaire`,
         {
           method: "POST",

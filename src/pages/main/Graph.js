@@ -13,7 +13,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-
+import { fetchWithToken } from "../../utils/fetchWithToken";
 // Enregistrement des composants nécessaires pour les graphiques
 ChartJS.register(
   CategoryScale,
@@ -40,7 +40,7 @@ const Graph = () => {
       setError(null);
 
       try {
-        const response = await fetch(
+        const response = await fetchWithToken(
           `${process.env.REACT_APP_API_BASE_URL}/dashboard_stats`
         );
 

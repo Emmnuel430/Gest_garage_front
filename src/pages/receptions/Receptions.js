@@ -8,6 +8,7 @@ import ConfirmPopup from "../../components/Layout/ConfirmPopup";
 import SearchBar from "../../components/Layout/SearchBar";
 import { Modal } from "react-bootstrap";
 import { format } from "date-fns";
+import { fetchWithToken } from "../../utils/fetchWithToken";
 
 const Receptions = () => {
   const [receptions, setReceptions] = useState([]);
@@ -30,7 +31,7 @@ const Receptions = () => {
       setError("");
 
       try {
-        const response = await fetch(
+        const response = await fetchWithToken(
           `${process.env.REACT_APP_API_BASE_URL}/liste_receptions`
         );
         if (!response.ok) {
@@ -76,7 +77,7 @@ const Receptions = () => {
     if (!selectedReception) return;
 
     try {
-      const response = await fetch(
+      const response = await fetchWithToken(
         `${process.env.REACT_APP_API_BASE_URL}/delete_reception/${selectedReception.id}?user_id=${userId}`,
         {
           method: "DELETE",

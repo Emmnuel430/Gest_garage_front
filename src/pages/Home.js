@@ -25,7 +25,7 @@ const Home = () => {
             </>
           )}
           <Recents />
-          <LastSection />
+          {user.role !== "gardien" ? <LastSection /> : ""}
           {/*
            */}
         </div>

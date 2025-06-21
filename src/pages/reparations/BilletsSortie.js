@@ -7,6 +7,7 @@ import HeaderWithFilter from "../../components/Layout/HeaderWithFilter";
 import { Button, Modal, Table } from "react-bootstrap";
 import moment from "moment";
 import { format } from "date-fns";
+import { fetchWithToken } from "../../utils/fetchWithToken";
 
 const BilletsSortie = () => {
   const [billetsSortie, setBilletsSortie] = useState([]);
@@ -31,7 +32,7 @@ const BilletsSortie = () => {
   const fetchBilletsSortie = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
+      const response = await fetchWithToken(
         `${process.env.REACT_APP_API_BASE_URL}/liste_billet_sortie`
       );
       const data = await response.json();
@@ -110,7 +111,6 @@ const BilletsSortie = () => {
                   <tr>
                     <th>#</th>
                     <th>Immat.</th>
-                    <th>Client</th>
                     <th>Marque / Modèle</th>
                     <th>Chef d’atelier</th>
                     <th>Début</th>
@@ -131,11 +131,10 @@ const BilletsSortie = () => {
                         (a, b) =>
                           new Date(b.created_at) - new Date(a.created_at)
                       )
-                      .map((billet) => (
+                      .map((billet, key) => (
                         <tr key={billet.id}>
-                          <td>{billet.id}</td>
+                          <td>{key + 1}</td>
                           <td>{billet.reception.vehicule.immatriculation}</td>
-                          <td>{billet.reception.vehicule.client_nom}</td>
                           <td>
                             <strong>{billet.reception.vehicule.marque}</strong>{" "}
                             {billet.reception.vehicule.modele}
@@ -184,11 +183,6 @@ const BilletsSortie = () => {
               <p>
                 <strong>Immat. :</strong>{" "}
                 {selectedBilletSortie.reception.vehicule.immatriculation}
-              </p>
-              <p>
-                <strong>Client :</strong>{" "}
-                {selectedBilletSortie.reception.vehicule.client_nom || "N/A"} (
-                {selectedBilletSortie.reception.vehicule.client_tel || "N/A"})
               </p>
               <p>
                 <strong>Véhicule :</strong>{" "}

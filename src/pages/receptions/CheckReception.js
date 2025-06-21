@@ -8,6 +8,7 @@ import ConfirmPopup from "../../components/Layout/ConfirmPopup";
 import Check from "./Check";
 import { Modal } from "react-bootstrap";
 import { format } from "date-fns";
+import { fetchWithToken } from "../../utils/fetchWithToken";
 
 const CheckReception = () => {
   const [receptions, setReceptions] = useState([]);
@@ -31,7 +32,7 @@ const CheckReception = () => {
       setError("");
 
       try {
-        const response = await fetch(
+        const response = await fetchWithToken(
           `${process.env.REACT_APP_API_BASE_URL}/liste_receptions`
         );
         if (!response.ok) {
@@ -86,7 +87,7 @@ const CheckReception = () => {
 
   const handleUpdateReception = async (updatedReception) => {
     try {
-      const response = await fetch(
+      const response = await fetchWithToken(
         `${process.env.REACT_APP_API_BASE_URL}/check/${updatedReception.id}`,
         {
           method: "POST",
@@ -117,7 +118,7 @@ const CheckReception = () => {
     if (!selectedReception) return;
 
     try {
-      const response = await fetch(
+      const response = await fetchWithToken(
         `${process.env.REACT_APP_API_BASE_URL}/delete_reception/${selectedReception.id}?user_id=${userId}`,
         {
           method: "DELETE",

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Loader from "../../components/Layout/Loader"; // Assurez-vous que le chemin est correct
+import { fetchWithToken } from "../../utils/fetchWithToken";
 
 const Statistiques = () => {
   const [totaux, setTotaux] = useState(null);
@@ -13,11 +14,11 @@ const Statistiques = () => {
       setError(null); // Réinitialise l'erreur
 
       try {
-        const response = await fetch(
+        const response = await fetchWithToken(
           `${process.env.REACT_APP_API_BASE_URL}/dashboard_stats`
         );
         if (!response.ok) {
-          throw new Error("Erreur lors de la récupération des logs");
+          throw new Error("Erreur lors de la récupération des données");
         }
 
         const data = await response.json(); // Définition de data
@@ -74,6 +75,12 @@ const Statistiques = () => {
       </div>
     </div>
   );
+
+  const formatMinutesToHHMM = (minutes) => {
+    const hrs = String(Math.floor(minutes / 60)).padStart(2, "0");
+    const mins = String(Math.floor(minutes % 60)).padStart(2, "0");
+    return `${hrs}h ${mins}min`;
+  };
 
   const cards = [
     // Bénéfice global
@@ -149,9 +156,9 @@ const Statistiques = () => {
     {
       icon: "fa-clock",
       color: "secondary",
-      title: "Temps moyen de réparation (min)",
+      title: "Temps moyen de réparation",
       value: totaux?.temps_moyen_reparation ? (
-        parseFloat(totaux.temps_moyen_reparation).toFixed(2)
+        formatMinutesToHHMM(totaux.temps_moyen_reparation)
       ) : (
         <span className="text-muted">00</span>
       ),

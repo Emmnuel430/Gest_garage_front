@@ -4,6 +4,7 @@ import Layout from "../../components/Layout/Layout";
 import Back from "../../components/Layout/Back";
 import ConfirmPopup from "../../components/Layout/ConfirmPopup"; // Importation du modal de confirmation
 import ToastMessage from "../../components/Layout/ToastMessage"; // Importation du composant de message toast
+import { fetchWithToken } from "../../utils/fetchWithToken";
 
 const Register = () => {
   // États pour stocker les données du formulaire et d'autres informations d'état
@@ -64,7 +65,7 @@ const Register = () => {
       const item = { nom, prenom, pseudo, password, role, admin_id: userId };
 
       // Envoi des données au backend avec une requête POST
-      let result = await fetch(
+      let result = await fetchWithToken(
         `${process.env.REACT_APP_API_BASE_URL}/add_user`,
         {
           method: "POST",

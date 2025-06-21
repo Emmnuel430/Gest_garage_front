@@ -5,6 +5,7 @@ import Back from "../../components/Layout/Back";
 import Select from "react-select";
 import ConfirmPopup from "../../components/Layout/ConfirmPopup";
 import ToastMessage from "../../components/Layout/ToastMessage";
+import { fetchWithToken } from "../../utils/fetchWithToken";
 
 const AddReception = () => {
   const navigate = useNavigate();
@@ -13,8 +14,8 @@ const AddReception = () => {
     immatriculation: "",
     marque: "",
     modele: "",
-    client_nom: "",
-    client_tel: "",
+    // client_nom: "",
+    // client_tel: "",
     mecanicien_id: null,
   });
   const [mecaniciens, setMecaniciens] = useState([]);
@@ -30,7 +31,7 @@ const AddReception = () => {
 
   const fetchMecaniciens = async () => {
     try {
-      const response = await fetch(
+      const response = await fetchWithToken(
         `${process.env.REACT_APP_API_BASE_URL}/liste_mecaniciens`
       );
       const data = await response.json();
@@ -78,7 +79,7 @@ const AddReception = () => {
         gardien_id,
       };
 
-      const response = await fetch(
+      const response = await fetchWithToken(
         `${process.env.REACT_APP_API_BASE_URL}/add_reception`,
         {
           method: "POST",
@@ -188,7 +189,7 @@ const AddReception = () => {
         />
         <br />
 
-        <label className="form-label">Nom du client</label>
+        {/* <label className="form-label">Nom du client</label>
         <input
           type="text"
           className="form-control"
@@ -210,7 +211,7 @@ const AddReception = () => {
             setVehicule({ ...vehicule, client_tel: e.target.value })
           }
         />
-        <br />
+        <br /> */}
 
         <label className="form-label">Mecanicien *</label>
         <Select
@@ -281,12 +282,12 @@ const AddReception = () => {
             <br />
             <strong>Modèle :</strong> {vehicule.modele || "-"}
             <br />
-            {vehicule.client_nom && vehicule.client_tel && (
+            {/* {vehicule.client_nom && vehicule.client_tel && (
               <>
                 <strong>Client :</strong> {vehicule.client_nom} (
                 {vehicule.client_tel})<br />
               </>
-            )}
+            )} */}
             <strong>Motif :</strong> {motif_visite}
           </div>
         }

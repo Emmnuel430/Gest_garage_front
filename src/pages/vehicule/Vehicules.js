@@ -5,6 +5,7 @@ import HeaderWithFilter from "../../components/Layout/HeaderWithFilter";
 import { Button, Modal, Table, Container, Row, Col } from "react-bootstrap";
 import { format } from "date-fns";
 import moment from "moment";
+import { fetchWithToken } from "../../utils/fetchWithToken";
 
 const Vehicule = () => {
   //   const [vehicules, setVehicules] = useState([]);
@@ -32,7 +33,7 @@ const Vehicule = () => {
   const handleGenererBillet = async (id) => {
     setLoading(true);
     try {
-      const response = await fetch(
+      const response = await fetchWithToken(
         `${process.env.REACT_APP_API_BASE_URL}/generer_billet/${id}`,
         {
           method: "POST",
@@ -63,7 +64,7 @@ const Vehicule = () => {
   const fetchVehicules = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
+      const response = await fetchWithToken(
         `${process.env.REACT_APP_API_BASE_URL}/liste_vehicules`
       );
       const data = await response.json();
@@ -104,6 +105,9 @@ const Vehicule = () => {
     setShowDetailsModal(false);
   };
 
+  const formatPhoneNumber = (number) => {
+    return number.replace(/(\d{2})(?=(\d{2})+(?!\d))/g, "$1 "); // Formate le numéro en groupes de 2 chiffres
+  };
   return (
     <Layout>
       <div className="container mt-4">
@@ -129,7 +133,7 @@ const Vehicule = () => {
                     <th></th>
                     <th>#</th>
                     <th>Immatriculation.</th>
-                    <th>Client</th>
+                    {/* <th>Client</th> */}
                     <th>Marque / Modèle</th>
                     <th>Mécanicien</th>
                     <th>Billet de sortie</th>
@@ -148,7 +152,7 @@ const Vehicule = () => {
                         (a, b) =>
                           new Date(b.created_at) - new Date(a.created_at)
                       )
-                      .map((vehicule) => (
+                      .map((vehicule, key) => (
                         <tr key={vehicule.id}>
                           <td>
                             <Button
@@ -159,17 +163,14 @@ const Vehicule = () => {
                               <i className="fa fa-eye"></i>
                             </Button>
                           </td>
-                          <td>{vehicule.id || "-"}</td>
+                          <td>{key + 1 || "-"}</td>
                           <td>{vehicule.immatriculation || "-"}</td>
-                          <td>{vehicule.client_nom || "-"}</td>
+                          {/* <td>{vehicule.client_nom || "-"}</td> */}
                           <td>
                             <strong>{vehicule.marque || "N/A"}</strong>{" "}
                             {vehicule.modele || "N/A"}
                           </td>
-                          <td>
-                            {vehicule.mecanicien?.prenom || "N/A"}{" "}
-                            {vehicule.mecanicien?.nom || "N/A"}
-                          </td>
+                          <td>{vehicule.mecanicien?.prenom || "N/A"} </td>
                           <td className="d-flex justify-content-center">
                             {vehicule.receptions.length > 0 ? (
                               (() => {
@@ -295,11 +296,11 @@ const Vehicule = () => {
                     <strong>Immatriculation :</strong>{" "}
                     {selectedVehicule.immatriculation}
                   </p>
-                  <p>
+                  {/* <p>
                     <strong>Client :</strong>{" "}
                     {selectedVehicule.client_nom || "N/A"} (
                     {selectedVehicule.client_tel || "N/A"})
-                  </p>
+                  </p> */}
                   <p>
                     <strong>Marque / Modèle :</strong>{" "}
                     <strong>{selectedVehicule.marque}</strong>{" "}
@@ -325,11 +326,14 @@ const Vehicule = () => {
                     {selectedVehicule.mecanicien.nom}
                   </p>
                   <p>
-                    <strong>Type :</strong> {selectedVehicule.mecanicien.type}
+                    <strong>Type :</strong>{" "}
+                    <span className="text-capitalize">
+                      {selectedVehicule.mecanicien.type}
+                    </span>
                   </p>
                   <p>
                     <strong>Contact :</strong>{" "}
-                    {selectedVehicule.mecanicien.contact}
+                    {formatPhoneNumber(selectedVehicule.mecanicien.contact)}
                   </p>
                 </Col>
               </Row>
@@ -350,17 +354,19 @@ const Vehicule = () => {
                       <p>
                         <strong>Motif :</strong> {r.motif_visite}
                       </p>
-                      <p>
-                        <strong>Fiche réception :</strong>{" "}
-                        <a
-                          href={`${process.env.REACT_APP_API_BASE_URL_STORAGE}/${r.fiche_reception_vehicule}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="btn btn-sm btn-outline-secondary"
-                        >
-                          Voir le PDF
-                        </a>
-                      </p>
+                      {r.fiche_reception_vehicule && (
+                        <p>
+                          <strong>Fiche réception :</strong>{" "}
+                          <a
+                            href={`${process.env.REACT_APP_API_BASE_URL_STORAGE}/${r.fiche_reception_vehicule}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-sm btn-outline-secondary"
+                          >
+                            Voir le PDF
+                          </a>
+                        </p>
+                      )}
                     </Col>
 
                     <Col md={6}>
@@ -384,7 +390,11 @@ const Vehicule = () => {
                       {r.facture?.date_generation && (
                         <>
                           <p>
-                            <strong>Montant :</strong> {r.facture.montant} FCFA
+                            <strong>Montant :</strong>{" "}
+                            {new Intl.NumberFormat("fr-FR", {
+                              useGrouping: true,
+                            }).format(r.facture.montant)}{" "}
+                            FCFA
                           </p>
                           <p>
                             <strong>Date paiement :</strong>{" "}

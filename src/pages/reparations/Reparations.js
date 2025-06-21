@@ -3,6 +3,7 @@ import Layout from "../../components/Layout/Layout";
 import Loader from "../../components/Layout/Loader";
 import { Card, Button, Modal, Table } from "react-bootstrap";
 import SearchBar from "../../components/Layout/SearchBar";
+import { fetchWithToken } from "../../utils/fetchWithToken";
 import moment from "moment";
 import { format } from "date-fns";
 
@@ -45,15 +46,15 @@ const Reparations = () => {
   const fetchReparations = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
+      const response = await fetchWithToken(
         `${process.env.REACT_APP_API_BASE_URL}/liste_reparations`
       );
       const data = await response.json();
-      const sorted = (data || []).sort(
-        (a, b) => new Date(b.created_at) - new Date(a.created_at)
-      );
-      // setReparations(data || []);
-      setAllReparations(sorted || []);
+      // const sorted = (data || []).sort(
+      //   (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      // );
+      setAllReparations(data || []);
+      // setAllReparations(sorted || []);
     } catch (error) {
       setError("Erreur lors du chargement des réparations.");
     } finally {
@@ -90,7 +91,7 @@ const Reparations = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(
+      const response = await fetchWithToken(
         `${process.env.REACT_APP_API_BASE_URL}/terminer/${selectedReparation.reception.id}`,
         {
           method: "POST",
@@ -136,7 +137,7 @@ const Reparations = () => {
               <div className="text-center">Aucune réparation en cours.</div>
             ) : (
               reparationsEnCours.map((rep) => (
-                <div className="col-md-4 mb-4" key={rep.id}>
+                <div className="col-lg-4 col-md-6 mb-4" key={rep.id}>
                   <Card className="shadow-sm d-flex flex-column align-items-center">
                     <Card.Body className="d-flex flex-column justify-content-between align-items-center text-center">
                       <Card.Title>
@@ -188,124 +189,118 @@ const Reparations = () => {
           delay={300}
         />
         <h4>Historique des réparations</h4>
-        <div className="table-responsive">
-          <Table hover responsive className="centered-table">
-            <thead>
+        <Table hover responsive className="centered-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Immatriculation</th>
+              <th>Vehivlue</th>
+              <th>Début</th>
+              <th>Fin</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {currentReparations.length === 0 ? (
               <tr>
-                <th>ID</th>
-                <th>Immatriculation</th>
-                <th>Vehivlue</th>
-                <th>Début</th>
-                <th>Fin</th>
-                <th>Statut</th>
-                <th>Actions</th>
+                <td colSpan="7" className="text-center">
+                  Aucune réparation trouvée.
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {currentReparations.length === 0 ? (
-                <tr>
-                  <td colSpan="7" className="text-center">
-                    Aucune réparation trouvée.
-                  </td>
-                </tr>
-              ) : (
-                currentReparations
-                  .sort(
-                    (a, b) => new Date(b.created_at) - new Date(a.created_at)
-                  )
-                  .map((rep) => (
-                    <tr key={rep.id}>
-                      <td>{rep.id}</td>
-                      <td>{rep.reception.vehicule.immatriculation}</td>
-                      <td>
-                        <strong>{rep.reception.vehicule.marque}</strong> -{" "}
-                        {rep.reception.vehicule.modele}
-                      </td>
-                      <td>
-                        {moment(rep.reception.chrono.start_time).format(
-                          "DD/MM/YY HH:mm:ss"
-                        )}
-                      </td>
-                      <td>
-                        {rep.created_at === rep.updated_at
-                          ? "En cours ..."
-                          : moment(rep.updated_at).format("DD/MM/YY HH:mm:ss")}
-                      </td>
-                      <td>
-                        {rep.statut === "termine" ? (
-                          <span className="badge bg-success">Terminée</span>
-                        ) : (
-                          <span className="badge bg-warning text-dark">
-                            En cours
-                          </span>
-                        )}
-                      </td>
-                      <td>
-                        <Button
-                          variant="info"
-                          onClick={() => handleShowDetails(rep)}
-                          className="btn-sm"
-                        >
-                          <i className="fa fa-eye"></i>
-                        </Button>
-                      </td>
-                    </tr>
-                  ))
-              )}
-            </tbody>
-          </Table>
+            ) : (
+              currentReparations
+                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                .map((rep) => (
+                  <tr key={rep.id}>
+                    <td>{rep.id}</td>
+                    <td>{rep.reception.vehicule.immatriculation}</td>
+                    <td>
+                      <strong>{rep.reception.vehicule.marque}</strong> -{" "}
+                      {rep.reception.vehicule.modele}
+                    </td>
+                    <td>
+                      {moment(rep.reception.chrono.start_time).format(
+                        "DD/MM/YY HH:mm:ss"
+                      )}
+                    </td>
+                    <td>
+                      {rep.created_at === rep.updated_at
+                        ? "En cours ..."
+                        : moment(rep.updated_at).format("DD/MM/YY HH:mm:ss")}
+                    </td>
+                    <td>
+                      {rep.statut === "termine" ? (
+                        <span className="badge bg-success">Terminée</span>
+                      ) : (
+                        <span className="badge bg-warning text-dark">
+                          En cours
+                        </span>
+                      )}
+                    </td>
+                    <td>
+                      <Button
+                        variant="info"
+                        onClick={() => handleShowDetails(rep)}
+                        className="btn-sm"
+                      >
+                        <i className="fa fa-eye"></i>
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+            )}
+          </tbody>
+        </Table>
 
-          {/* Pagination */}
-          <nav>
-            <ul className="pagination justify-content-center">
-              {/* Précédent */}
-              <li
-                className={`page-item ${currentPage === 1 ? "disabled" : ""}`}
+        {/* Pagination */}
+        <nav>
+          <ul className="pagination justify-content-center">
+            {/* Précédent */}
+            <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+              <button
+                className="page-link"
+                onClick={() => handlePageChange(currentPage - 1)}
               >
-                <button
-                  className="page-link"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                >
-                  Précédent
-                </button>
-              </li>
+                Précédent
+              </button>
+            </li>
 
-              {/* Pages */}
-              {[...Array(totalPages).keys()].map((_, index) => {
-                const page = index + 1;
-                return (
-                  <li
-                    key={page}
-                    className={`page-item ${
-                      currentPage === page ? "active" : ""
-                    }`}
+            {/* Pages */}
+            {[...Array(totalPages).keys()].map((_, index) => {
+              const page = index + 1;
+              return (
+                <li
+                  key={page}
+                  className={`page-item ${
+                    currentPage === page ? "active" : ""
+                  }`}
+                >
+                  <button
+                    className="page-link"
+                    onClick={() => handlePageChange(page)}
                   >
-                    <button
-                      className="page-link"
-                      onClick={() => handlePageChange(page)}
-                    >
-                      {page}
-                    </button>
-                  </li>
-                );
-              })}
+                    {page}
+                  </button>
+                </li>
+              );
+            })}
 
-              {/* Suivant */}
-              <li
-                className={`page-item ${
-                  currentPage === totalPages ? "disabled" : ""
-                }`}
+            {/* Suivant */}
+            <li
+              className={`page-item ${
+                currentPage === totalPages ? "disabled" : ""
+              }`}
+            >
+              <button
+                className="page-link"
+                onClick={() => handlePageChange(currentPage + 1)}
               >
-                <button
-                  className="page-link"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                >
-                  Suivant
-                </button>
-              </li>
-            </ul>
-          </nav>
-        </div>
+                Suivant
+              </button>
+            </li>
+          </ul>
+        </nav>
       </div>
 
       {/* Modal de détails */}

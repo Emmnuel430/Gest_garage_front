@@ -7,6 +7,7 @@ import { useNavigate, Link } from "react-router-dom"; // Importation de 'useNavi
 import logo from "../../assets/img/logo.png"; // Importation du logo de l'application.
 import Sidebar from "./Sidebar"; // Importation du composant Sidebar
 import ThemeSwitcher from "../others/ThemeSwitcher"; // Importation du composant ThemeSwitcher
+import { fetchWithToken } from "../../utils/fetchWithToken";
 
 // Définition du composant Layout qui sera utilisé comme un modèle de page (avec du contenu dynamique via 'children')
 const Layout = ({ children }) => {
@@ -19,26 +20,21 @@ const Layout = ({ children }) => {
 
   // Fonction de déconnexion qui efface les informations de l'utilisateur du localStorage et redirige vers la page de connexion
   async function logOut() {
-    const token = localStorage.getItem("token");
+    // const token = localStorage.getItem("token");
 
     try {
       setLoad(true);
-      await fetch(`${process.env.REACT_APP_API_BASE_URL}/logout`, {
+      await fetchWithToken(`${process.env.REACT_APP_API_BASE_URL}/logout`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + token,
-        },
       });
     } catch (error) {
       console.error("Erreur de déconnexion :", error);
     } finally {
       setLoad(false);
+      // Nettoyage et redirection
+      localStorage.clear();
+      navigate("/");
     }
-    // Redirection
-    navigate("/");
-    // Nettoyage du localStorage
-    localStorage.clear();
   }
 
   return (

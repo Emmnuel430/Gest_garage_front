@@ -3,6 +3,7 @@ import { Table, Modal, Button } from "react-bootstrap"; // Importation pour le m
 import Layout from "../components/Layout/Layout";
 import Loader from "../components/Layout/Loader";
 import HeaderWithFilter from "../components/Layout/HeaderWithFilter";
+import { fetchWithToken } from "../utils/fetchWithToken";
 
 import { format } from "date-fns";
 
@@ -28,7 +29,7 @@ const Logs = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(
+        const response = await fetchWithToken(
           `${process.env.REACT_APP_API_BASE_URL}/logs`
         );
         if (!response.ok) {
@@ -75,15 +76,19 @@ const Logs = () => {
   const getActionLabel = (action) => {
     switch (action) {
       case "add":
-        return "Ajouter";
+        return "Ajout";
       case "update":
-        return "Mise à jour";
+        return "M à j.";
       case "delete":
-        return "Supprimer";
+        return "Suppr.";
       case "maj":
-        return "Mise à jour";
+        return "M à j.";
       case "create":
-        return "Création";
+        return "Créer";
+      case "pause":
+        return "Pause";
+      case "resume":
+        return "Reprendre";
       default:
         return "Action inconnue";
     }
@@ -100,8 +105,12 @@ const Logs = () => {
         return "bg-danger";
       case "maj":
         return "bg-info";
-      default:
+      case "pause":
         return "bg-warning";
+      case "resume":
+        return "bg-success";
+      default:
+        return "bg-dark"; // Couleur par défaut pour les actions inconnues
     }
   };
 
