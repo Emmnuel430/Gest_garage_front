@@ -139,11 +139,21 @@ const Layout = ({ children }) => {
 
         {/* Contenu dynamique de la page, qui sera fourni par le parent (via 'children') */}
         <div className="p-2">{children}</div>
-        <br />
-        <br />
+        <div class="footer px-4 pt-4 mt-5">
+          <div class="bg-body">
+            <div class="row small">
+              <div class="col-12 col-sm-6 text-center text-sm-start">
+                &copy; {new Date().getFullYear()} <Link to="/">Gest</Link>,
+                AsNumeric - J/E. Tous droits réservés.
+              </div>
+              <div class="col-12 col-sm-6 text-center text-sm-end text-muted ">
+                Designed By <Link to="/">Joel E. Daho</Link>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <br />
-      <br />
+      
 
       {/* Bouton de retour en haut de la page */}
       <button className="btn btn-lg btn-primary btn-lg-square back-to-top hide">
