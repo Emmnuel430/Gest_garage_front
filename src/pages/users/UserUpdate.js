@@ -104,12 +104,10 @@ const UserUpdate = () => {
       );
 
       const data = await response.json(); // Parse de la réponse JSON
-      console.log(data.user); // Pour le débogage
 
       if (response.ok) {
         alert("Données mises à jour !");
         if (parseInt(userId) === parseInt(id)) {
-          console.log("Mise à jour de l'utilisateur connecté", data.user);
           localStorage.setItem("user-info", JSON.stringify(data.user));
           // window.location.reload();
         }
