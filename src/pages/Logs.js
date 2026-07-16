@@ -6,6 +6,7 @@ import HeaderWithFilter from "../components/Layout/HeaderWithFilter";
 import { fetchWithToken } from "../utils/fetchWithToken";
 
 import { format } from "date-fns";
+import { formatRole } from "../utils/helpers";
 
 const Logs = () => {
   // États pour gérer les données
@@ -110,7 +111,7 @@ const Logs = () => {
       case "resume":
         return "bg-success";
       default:
-        return "bg-dark"; // Couleur par défaut pour les actions inconnues
+        return "bg-secondary"; // Couleur par défaut pour les actions inconnues
     }
   };
 
@@ -126,20 +127,12 @@ const Logs = () => {
     setSelectedLog(null);
   };
 
-  function formatRole(role) {
-    if (!role) return "";
-    return role
-      .split("_") // coupe par "_"
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1)) // met en majuscule la première lettre
-      .join(" "); // re-colle avec des espaces
-  }
-
   const roleColors = {
     super_admin: "bg-success",
     gardien: "bg-warning",
     secretaire: "bg-info",
     chef_atelier: "bg-primary",
-    caissier: "bg-info",
+    caisse: "bg-info",
   };
 
   return (
@@ -278,7 +271,12 @@ const Logs = () => {
                     <div className="row mb-2">
                       <div className="col-6 fw-bold">Créé le :</div>
                       <div className="col-6">
-                        {selectedLog.user_doc || "Inconnu"}
+                        {selectedLog.user_doc
+                          ? format(
+                              new Date(selectedLog.user_doc),
+                              "dd/MM/yyyy HH:mm:ss"
+                            )
+                          : "Non disponible"}
                       </div>
                     </div>
 

@@ -1,5 +1,5 @@
 export async function fetchWithToken(url, options = {}) {
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
 
   const headers = {
     "Content-Type": "application/json",
@@ -18,7 +18,7 @@ export async function fetchWithToken(url, options = {}) {
 
   // Si le token est invalide ou expiré
   if (response.status === 401) {
-    localStorage.clear();
+    sessionStorage.clear();
     window.location.href = "/";
     throw new Error("Non autorisé");
   }

@@ -3,17 +3,9 @@ import { Link } from "react-router-dom"; // Importation de Link pour la navigati
 import userImg from "../../assets/img/user.png"; // Importation de l'image de profil par défaut.
 import logo from "../../assets/img/logo.png"; // Importation du logo de l'application.
 import SidebarLinks from "./SidebarLinks"; // Importation du composant SidebarLinks qui contient les liens de la barre latérale.
+import { formatRole } from "../../utils/helpers";
 
 const Sidebar = ({ user }) => {
-  // Définition du composant Sidebar qui prend un utilisateur en prop.
-  function formatRole(role) {
-    if (!role) return "";
-    return role
-      .split("_") // coupe par "_"
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1)) // met en majuscule la première lettre
-      .join(" "); // re-colle avec des espaces
-  }
-
   return (
     <div className="sidebar b-bar d-flex pb-3 bg-body">
       <div className="navbar bg-body navbar-body">

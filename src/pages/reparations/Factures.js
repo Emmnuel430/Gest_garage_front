@@ -20,7 +20,7 @@ const Factures = () => {
   const [showModal, setShowModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  const userInfo = JSON.parse(localStorage.getItem("user-info"));
+  const userInfo = JSON.parse(sessionStorage.getItem("user-info"));
   const userId = userInfo?.id;
 
   const handleShowDetails = (facture) => {
@@ -48,7 +48,7 @@ const Factures = () => {
   };
 
   const handleConfirmGeneration = () => {
-    handleGenererFacture(selectedFacture.id);
+    handleGenererFacture(selectedFacture.reception.id);
     setShowConfirmModal(false);
   };
 
@@ -105,9 +105,6 @@ const Factures = () => {
         `${process.env.REACT_APP_API_BASE_URL}/generer_facture/${factureId}`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
           body: JSON.stringify({ user_id: userId }),
         }
       );
@@ -188,7 +185,6 @@ const Factures = () => {
                   <th>Actions</th>
                   <th>Immat.</th>
                   <th>Vehicule</th>
-                  <th>Client</th>
                   <th>Statut</th>
                   <th>Date de génération</th>
                   <th>Générer</th>
@@ -241,7 +237,6 @@ const Factures = () => {
                           <strong>{facture.reception?.vehicule?.marque}</strong>{" "}
                           - <em>{facture.reception?.vehicule?.modele}</em>
                         </td>
-                        <td>{facture.reception?.vehicule?.client_nom}</td>
                         <td>
                           <span
                             className={`badge ${
@@ -293,11 +288,6 @@ const Factures = () => {
               <p>
                 <strong>Immatriculation :</strong>{" "}
                 {selectedFacture.reception.vehicule.immatriculation || "N/A"}
-              </p>
-              <p>
-                <strong>Client :</strong>{" "}
-                {selectedFacture.reception.vehicule.client_nom || "N/A"} (
-                {selectedFacture.reception.vehicule.client_tel || "N/A"})
               </p>
               <p>
                 <strong>Véhicule :</strong>{" "}

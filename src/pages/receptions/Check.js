@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ToastMessage from "../../components/Layout/ToastMessage";
 import { slugify } from "../../utils/helpers"; // tu peux faire un helper pour slugifier
+import { fetchWithToken } from "../../utils/fetchWithToken";
 
 const VALUE_OPTIONS = {
   presence: [
@@ -22,7 +23,7 @@ const Check = ({ reception, onClose, onUpdate }) => {
 
   // Charger les check_items depuis l'API
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_API_BASE_URL}/check-items`)
+    fetchWithToken(`${process.env.REACT_APP_API_BASE_URL}/check-items`)
       .then((res) => {
         if (!res.ok) {
           throw new Error("Erreur réseau");

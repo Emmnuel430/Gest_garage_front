@@ -8,19 +8,23 @@ import logo from "../../assets/img/logo.png"; // Importation du logo de l'applic
 import Sidebar from "./Sidebar"; // Importation du composant Sidebar
 import ThemeSwitcher from "../others/ThemeSwitcher"; // Importation du composant ThemeSwitcher
 import { fetchWithToken } from "../../utils/fetchWithToken";
+import useIdleLogout from "../../utils/useIdleLogout";
+import { formatRole } from "../../utils/helpers";
 
 // Définition du composant Layout qui sera utilisé comme un modèle de page (avec du contenu dynamique via 'children')
 const Layout = ({ children }) => {
-  // Récupération des informations de l'utilisateur depuis le localStorage (si elles existent)
-  let user = JSON.parse(localStorage.getItem("user-info"));
+  useIdleLogout(15); // Déconnexion après 15 minutes d'inactivité
+
+  // Récupération des informations de l'utilisateur depuis le sessionStorage (si elles existent)
+  let user = JSON.parse(sessionStorage.getItem("user-info"));
   const [load, setLoad] = useState(false);
 
   // Utilisation de 'useNavigate' pour effectuer des redirections dans l'application
   const navigate = useNavigate();
 
-  // Fonction de déconnexion qui efface les informations de l'utilisateur du localStorage et redirige vers la page de connexion
+  // Fonction de déconnexion qui efface les informations de l'utilisateur du sessionStorage et redirige vers la page de connexion
   async function logOut() {
-    // const token = localStorage.getItem("token");
+    // const token = sessionStorage.getItem("token");
 
     try {
       setLoad(true);
@@ -32,7 +36,7 @@ const Layout = ({ children }) => {
     } finally {
       setLoad(false);
       // Nettoyage et redirection
-      localStorage.clear();
+      sessionStorage.clear();
       navigate("/");
     }
   }
@@ -111,9 +115,9 @@ const Layout = ({ children }) => {
                     width="40"
                     height="40"
                   />
-                  <span className="d-none d-lg-inline items text-body">
+                  <span className="d-inline items text-body text-capitalize ms-1">
                     {/* {user && user.first_name}{" "} */}
-                    <strong>{user && user.last_name}</strong>
+                    <strong>{user && formatRole(user.role)}</strong>
                   </span>
                 </Link>
                 {/* Menu déroulant avec l'option de déconnexion */}

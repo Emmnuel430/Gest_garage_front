@@ -36,7 +36,7 @@ const Chronos = () => {
     setShowModal(false);
   };
 
-  const userInfo = JSON.parse(localStorage.getItem("user-info"));
+  const userInfo = JSON.parse(sessionStorage.getItem("user-info"));
   const userId = userInfo?.id;
 
   // Actualiser l'heure locale toutes les secondes
