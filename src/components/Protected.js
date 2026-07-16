@@ -9,12 +9,12 @@ const Protected = ({ Cmp, adminOnly = false, roles = [] }) => {
     const excludedPaths = ["/", "/logout"];
     if (excludedPaths.includes(window.location.pathname)) return;
 
-    const token = localStorage.getItem("token");
-    const userInfo = localStorage.getItem("user-info");
+    const token = sessionStorage.getItem("token");
+    const userInfo = sessionStorage.getItem("user-info");
     const user = userInfo ? JSON.parse(userInfo) : null;
 
     if (!token || !user) {
-      localStorage.clear();
+      sessionStorage.clear();
       navigate("/");
       return;
     }
@@ -60,7 +60,7 @@ const Protected = ({ Cmp, adminOnly = false, roles = [] }) => {
         setIsAuthorized(true);
       } catch (error) {
         // Token invalide, utilisateur supprimé, etc.
-        localStorage.clear();
+        sessionStorage.clear();
         navigate("/");
       }
     };

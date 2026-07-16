@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom"; // Importez Link pour les redirections
-import { Table } from "react-bootstrap";
 import Loader from "../../components/Layout/Loader"; // Assurez-vous que le chemin est correct
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale"; // Importation pour la localisation française
 import { fetchWithToken } from "../../utils/fetchWithToken"; // Fonction utilitaire pour les appels API avec token
+import DashboardCards from "../../components/DashboardCards";
 
 const LastSection = () => {
   const [, setTimeState] = useState(Date.now()); // État pour forcer le re-rendu
@@ -13,7 +12,6 @@ const LastSection = () => {
   const [logs, setLogs] = useState([]); // État pour stocker les logs
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const navigate = useNavigate(); // Navigation entre les pages
 
   useEffect(() => {
     fetchChronosEnCours();
@@ -26,7 +24,7 @@ const LastSection = () => {
     return () => clearInterval(interval); // Nettoie l'intervalle lors du démontage
   }, []); // Le tableau vide [] signifie que l'effet ne s'exécute qu'une seule fois après le premier rendu
 
-  const userInfo = JSON.parse(localStorage.getItem("user-info")); //
+  const userInfo = JSON.parse(sessionStorage.getItem("user-info")); //
   // Récupération des informations utilisateur
 
   const fetchChronosEnCours = async () => {
@@ -134,7 +132,7 @@ const LastSection = () => {
       case "pause":
         return "Pause";
       case "resume":
-        return "Reprendre";
+        return "Repr.";
       default:
         return "Action inconnue";
     }
@@ -173,162 +171,15 @@ const LastSection = () => {
         </div>
       ) : (
         <>
-          <div className="row g-4">
-            {/* Factures impayée */}
-            <div className="col-md-6 col-xl-4">
-              <div className="h-100 bg-body rounded border p-4">
-                <div className="d-flex align-items-center justify-content-between mb-2">
-                  <h6 className="mb-0">Factures impayées</h6>
-                  {(userInfo?.role === "super_admin" ||
-                    userInfo?.role === "caisse") && (
-                    <Link to="/factures">Voir</Link>
-                  )}
-                </div>
-                {facturesImpayees.length > 0 ? (
-                  facturesImpayees
-                    .slice(0, 3) // Limite à 3 factures
-                    .map((facture, index) => (
-                      <div
-                        key={index}
-                        className={`d-flex align-items-center border shadow-sm rounded p-3 mb-2 
-                          border-danger bg-danger-subtle
-                      `}
-                        style={{
-                          cursor: "pointer",
-                        }}
-                        onClick={() => {
-                          navigate(`/factures`);
-                        }}
-                      >
-                        <i
-                          className={`bi
-                              bi-exclamation-triangle-fill text-danger
-                          `}
-                          style={{ fontSize: "2rem" }}
-                        ></i>
-                        <div className="w-100 ms-3">
-                          <div className="d-flex w-100 justify-content-between">
-                            <h6 className={`mb-0 fw-bold text-danger`}>
-                              {userInfo?.role === "super_admin" ||
-                              userInfo?.role === "caisse" ? (
-                                <>
-                                  La facture du véhicule{" "}
-                                  <strong>
-                                    {
-                                      facture.reception?.vehicule
-                                        ?.immatriculation
-                                    }
-                                  </strong>{" "}
-                                  n'a pas encore été réglée !
-                                </>
-                              ) : (
-                                <>
-                                  Vous n'avez pas les droits pour voir les
-                                  factures.
-                                </>
-                              )}
-                            </h6>
-                            <small className="text-muted">
-                              {formatDateRelative(facture.date_generation)}
-                            </small>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                ) : (
-                  <div className="text-center text-muted h-100 d-flex align-items-center justify-content-center">
-                    Tout baigne pour l'instant. Personne ne doit.
-                  </div>
-                )}
-              </div>
-            </div>
-            {/* Derniers logs */}
-            <div className="col-md-6 col-xl-4">
-              <div className="h-100 bg-body rounded border p-4">
-                <div className="d-flex align-items-center justify-content-between mb-4">
-                  <h6 className="mb-0">Logs</h6>
-                  {userInfo?.role === "super_admin" && (
-                    <Link to="/logs">Voir</Link>
-                  )}
-                </div>
-                <div className="d-flex flex-column align-items-center">
-                  {userInfo?.role === "super_admin" ? (
-                    logs.length > 0 ? (
-                      <>
-                        <Table hover className="centered-table w-100">
-                          <tbody>
-                            {logs.map((log, index) => (
-                              <tr key={index}>
-                                <td>
-                                  <span
-                                    className={`${getActionColor(
-                                      log.action
-                                    )} text-uppercase text-white rounded-pill px-2 py-1`}
-                                  >
-                                    {getActionLabel(log.action)}
-                                  </span>
-                                </td>
-                                <td className="text-capitalize">
-                                  {log.table_concernee}
-                                </td>
-                                <td>{formatDateRelative(log.created_at)}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </Table>
-                      </>
-                    ) : (
-                      <div className="text-center text-muted h-100 d-flex align-items-center justify-content-center">
-                        Aucun log disponible.
-                      </div>
-                    )
-                  ) : (
-                    <div className="text-center text-danger h-100 d-flex align-items-center justify-content-center">
-                      Vous n'avez pas les droits pour voir les logs.
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-            {/* Chronos en cours */}
-            <div className="col-md-6 col-xl-4">
-              <div className="h-100 bg-body rounded border p-4">
-                <div className="d-flex align-items-center justify-content-between mb-4">
-                  <h6 className="mb-0">Chronos en cours</h6>
-                  {userInfo?.role !== "gardien" && (
-                    <Link to="/chronos">Voir</Link>
-                  )}
-                </div>
-                <div className="d-flex flex-column align-items-center py-2">
-                  {chronosEnCours.length > 0 ? (
-                    chronosEnCours.map((chrono, index) => (
-                      <div
-                        key={index}
-                        className="d-flex align-items-center border-bottom w-100 pb-1 mb-2"
-                      >
-                        <i
-                          className={`fa fa-clock text-warning`}
-                          style={{ fontSize: "2rem" }}
-                        ></i>
-                        <div className="w-100 ms-3">
-                          <div className="w-100 d-flex align-items-center justify-content-between">
-                            <p className="mb-0">
-                              <span>Debut : </span>
-                              {formatDateRelative(chrono.start_time)}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center text-muted h-100 d-flex align-items-center justify-content-center">
-                      Aucun chrono en cours.
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+          <DashboardCards
+            userInfo={userInfo}
+            facturesImpayees={facturesImpayees}
+            logs={logs}
+            chronosEnCours={chronosEnCours}
+            formatDateRelative={formatDateRelative}
+            getActionColor={getActionColor}
+            getActionLabel={getActionLabel}
+          />
         </>
       )}
     </div>
