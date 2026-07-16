@@ -18,7 +18,7 @@ const Vehicule = () => {
   const [error, setError] = useState("");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  const userInfo = JSON.parse(localStorage.getItem("user-info"));
+  const userInfo = JSON.parse(sessionStorage.getItem("user-info"));
   const userId = userInfo?.id;
 
   const handleShowConfirmModal = (vehicule) => {

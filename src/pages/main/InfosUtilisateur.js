@@ -1,7 +1,7 @@
 import React from "react";
 
 const InfosUtilisateur = () => {
-  const user = JSON.parse(localStorage.getItem("user-info"));
+  const user = JSON.parse(sessionStorage.getItem("user-info"));
 
   if (!user) return <p>Utilisateur non connecté</p>;
 

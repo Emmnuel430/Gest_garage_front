@@ -9,7 +9,7 @@ import LastSection from "./main/LastSection";
  */
 
 const Home = () => {
-  const user = JSON.parse(localStorage.getItem("user-info"));
+  const user = JSON.parse(sessionStorage.getItem("user-info"));
   return (
     <div>
       <Layout>

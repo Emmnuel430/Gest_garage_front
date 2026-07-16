@@ -22,7 +22,7 @@ const CheckReception = () => {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [receptionToUpdate, setReceptionToUpdate] = useState(null);
 
-  const userInfo = JSON.parse(localStorage.getItem("user-info"));
+  const userInfo = JSON.parse(sessionStorage.getItem("user-info"));
   const userId = userInfo ? userInfo.id : null;
   const userRole = userInfo ? userInfo.role : null;
 

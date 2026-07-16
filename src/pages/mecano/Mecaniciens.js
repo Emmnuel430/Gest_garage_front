@@ -27,8 +27,8 @@ const Mecaniciens = () => {
   const [mecanicienToUpdate, setMecanicienToUpdate] = useState(null);
   const navigate = useNavigate(); // Hook pour la navigation
 
-  // Récupérer l'ID de l'utilisateur connecté à partir du localStorage
-  const userInfo = JSON.parse(localStorage.getItem("user-info"));
+  // Récupérer l'ID de l'utilisateur connecté à partir du sessionStorage
+  const userInfo = JSON.parse(sessionStorage.getItem("user-info"));
   const userId = userInfo ? userInfo.id : null; // ID de l'utilisateur connecté
 
   // Récupérer la liste des mécaniciens lors du premier rendu

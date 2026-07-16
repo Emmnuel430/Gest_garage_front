@@ -22,7 +22,7 @@ const UserUpdate = () => {
   const [showPasswordInput, setShowPasswordInput] = useState(false); // État pour afficher ou masquer le champ de mot de passe
   const [showPassword, setShowPassword] = useState(false);
 
-  const userInfo = JSON.parse(localStorage.getItem("user-info")); // Récupérer les informations de l'utilisateur connecté
+  const userInfo = JSON.parse(sessionStorage.getItem("user-info")); // Récupérer les informations de l'utilisateur connecté
   const userId = userInfo ? userInfo.id : null; // Récupérer l'ID de l'utilisateur connecté
 
   // Hook useEffect qui se déclenche une fois au montage du composant
@@ -108,7 +108,7 @@ const UserUpdate = () => {
       if (response.ok) {
         alert("Données mises à jour !");
         if (parseInt(userId) === parseInt(id)) {
-          localStorage.setItem("user-info", JSON.stringify(data.user));
+          sessionStorage.setItem("user-info", JSON.stringify(data.user));
           // window.location.reload();
         }
         navigate("/utilisateurs"); // Redirige vers la liste des utilisateurs après la mise à jour

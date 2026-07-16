@@ -14,7 +14,7 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (localStorage.getItem("user-info")) {
+    if (sessionStorage.getItem("user-info")) {
       navigate("/home"); // Redirige si l'utilisateur est déjà connecté
     }
   }, [navigate]);
@@ -51,8 +51,8 @@ const Login = () => {
         return;
       }
 
-      localStorage.setItem("user-info", JSON.stringify(result.user));
-      localStorage.setItem("token", result.access_token);
+      sessionStorage.setItem("user-info", JSON.stringify(result.user));
+      sessionStorage.setItem("token", result.access_token);
 
       setLoading(false);
       navigate("/home");

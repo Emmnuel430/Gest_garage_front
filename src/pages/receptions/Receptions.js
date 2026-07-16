@@ -21,7 +21,7 @@ const Receptions = () => {
   const [sortedReceptions, setSortedReceptions] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const userInfo = JSON.parse(localStorage.getItem("user-info"));
+  const userInfo = JSON.parse(sessionStorage.getItem("user-info"));
   const userId = userInfo ? userInfo.id : null;
   const userRole = userInfo ? userInfo.role : null;
 
@@ -222,14 +222,17 @@ const Receptions = () => {
                                 <i className="fas fa-eye"></i>
                               </button>
 
-                              <Button
-                                variant="danger"
-                                size="sm"
-                                onClick={() => handleOpenModal(reception)}
-                                disabled={isDisabled}
-                              >
-                                <i className="fas fa-trash"></i>
-                              </Button>
+                              {(userRole === "super_admin" ||
+                                userRole === "secretaire") && (
+                                <Button
+                                  variant="danger"
+                                  size="sm"
+                                  onClick={() => handleOpenModal(reception)}
+                                  disabled={isDisabled}
+                                >
+                                  <i className="fas fa-trash"></i>
+                                </Button>
+                              )}
                             </div>
                           </td>
                         </tr>
