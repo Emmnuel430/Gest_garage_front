@@ -1,31 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Loader from "../../components/Layout/Loader"; // Assurez-vous que le chemin est correct
 import { Line, Bar } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
 import { fetchWithToken } from "../../utils/fetchWithToken";
-// Enregistrement des composants nécessaires pour les graphiques
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend
-);
 
 const Graph = () => {
   const [benefData, setBenefData] = useState({});
@@ -41,7 +17,7 @@ const Graph = () => {
 
       try {
         const response = await fetchWithToken(
-          `${process.env.REACT_APP_API_BASE_URL}/dashboard_stats`
+          `${process.env.REACT_APP_API_BASE_URL}/dashboard_stats`,
         );
 
         if (!response.ok) {
@@ -52,7 +28,7 @@ const Graph = () => {
 
         setBenefData(formatTimeSeries(data.benefices_par_jour, "Bénéfices"));
         setReceptionsData(
-          formatTimeSeries(data.receptions_total, "Réceptions")
+          formatTimeSeries(data.receptions_total, "Réceptions"),
         );
       } catch (error) {
         setError("Impossible de charger les données : " + error.message);
