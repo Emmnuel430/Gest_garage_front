@@ -43,9 +43,6 @@ const Factures = () => {
     reset: resetPagination,
   } = usePagination(pagination.last_page || 1);
 
-  const userInfo = JSON.parse(sessionStorage.getItem("user-info"));
-  const userId = userInfo?.id;
-
   const handleSearch = (query) => {
     setSearchQuery(query);
     resetPagination();
@@ -92,7 +89,7 @@ const Factures = () => {
     if (currentPage !== 1) {
       resetPagination();
     }
-  }, [filter, searchQuery]);
+  }, [filter, searchQuery, currentPage, resetPagination]);
 
   const handleValiderPaiement = async () => {
     const selectedFacture = modal.data;

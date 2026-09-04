@@ -45,7 +45,6 @@ const Chronos = () => {
   } = usePagination(pagination.last_page || 1);
 
   const userInfo = JSON.parse(sessionStorage.getItem("user-info"));
-  const userId = userInfo?.id;
 
   const handleSearch = (query) => {
     setSearchQuery(query);
@@ -106,13 +105,13 @@ const Chronos = () => {
       isMounted = false;
       controller.abort();
     };
-  }, [currentPage, searchQuery, refreshTrigger]);
+  }, [currentPage, searchQuery, refreshTrigger, showToast]);
 
   useEffect(() => {
     if (currentPage !== 1) {
       resetPagination();
     }
-  }, [searchQuery]);
+  }, [searchQuery, currentPage, resetPagination]);
 
   const [, setCurrentTime] = useState(Date.now());
 

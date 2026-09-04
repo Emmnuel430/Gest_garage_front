@@ -88,7 +88,7 @@ const Vehicules = () => {
     if (currentPage !== 1) {
       resetPagination();
     }
-  }, [searchQuery, currentPage]);
+  }, [searchQuery, currentPage, resetPagination]);
 
   const handleConfirmGeneration = async () => {
     const receptionId = modal.data?.receptions?.[0]?.id;
