@@ -1,4 +1,5 @@
 import React from "react";
+import Avatar from "../../components/Layout/Avatar";
 
 const InfosUtilisateur = () => {
   const user = JSON.parse(sessionStorage.getItem("user-info"));
@@ -8,11 +9,11 @@ const InfosUtilisateur = () => {
   // Icône selon le rôle (tu peux adapter ici)
   const renderIcon = () => {
     switch (user.role) {
-      case "super_admin":
+      case "admin":
         return <i className="fa fa-user-shield fa-3x text-primary"></i>;
-      case "secretaire":
+      case "reception":
         return <i className="fa fa-user-edit fa-3x text-primary"></i>;
-      case "chef_atelier":
+      case "caisse_outils":
         return <i className="fa fa-tools fa-3x text-primary"></i>;
       case "caisse":
         return <i className="fa fa-cash-register fa-3x text-primary"></i>;
@@ -33,7 +34,13 @@ const InfosUtilisateur = () => {
               className="d-inline-flex align-items-center justify-content-center bg-light rounded-circle"
               style={{ width: "120px", height: "120px" }}
             >
-              {renderIcon()}
+              {/* {renderIcon()} */}
+              <Avatar
+                firstName={user.first_name}
+                lastName={user.last_name}
+                role={user.role}
+                size={120}
+              />
             </div>
           </div>
 

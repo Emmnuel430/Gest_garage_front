@@ -1,189 +1,127 @@
-import React, { useEffect, useState } from "react";
-import Loader from "../../components/Layout/Loader"; // Assurez-vous que le chemin est correct
-import { fetchWithToken } from "../../utils/fetchWithToken";
+import React from "react";
+import Loader from "../../components/Layout/Loader";
+import { formatMinutesToDHMM, formatMontant } from "../../utils/helpers";
 
-const Statistiques = () => {
-  const [totaux, setTotaux] = useState(null);
-  //   CA - Mecaniciens - Reparées - Temps moyen - EA - valide - TER
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true); // Indique que les données sont en cours de chargement
-      setError(null); // Réinitialise l'erreur
-
-      try {
-        const response = await fetchWithToken(
-          `${process.env.REACT_APP_API_BASE_URL}/dashboard_stats`
-        );
-        if (!response.ok) {
-          throw new Error("Erreur lors de la récupération des données");
-        }
-
-        const data = await response.json(); // Définition de data
-        setTotaux(data);
-      } catch (error) {
-        // console.error("Erreur lors de la récupération des données :", error);
-        setError("Impossible de charger les données : " + error.message); // Gestion des erreurs
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  // Fonction pour formater le montant
-  function formatMontant(montant) {
-    if (montant >= 1_000_000_000) {
-      return (
-        (montant / 1_000_000_000)
-          .toFixed(montant % 1_000_000_000 === 0 ? 0 : 1)
-          .replace(".", ",") + " Md"
-      );
-    } else if (montant >= 1_000_000) {
-      return (
-        (montant / 1_000_000)
-          .toFixed(montant % 1_000_000 === 0 ? 0 : 1)
-          .replace(".", ",") + " M"
-      );
-    } else if (montant >= 1_000) {
-      return (
-        (montant / 1_000)
-          .toFixed(montant % 1_000 === 0 ? 0 : 1)
-          .replace(".", ",") + " K"
-      );
-    } else {
-      return new Intl.NumberFormat("fr-FR", { useGrouping: true }).format(
-        Math.trunc(montant)
-      );
-    }
-  }
-
-  const renderCard = ({ icon, color, title, title2, value }) => (
-    // Card pour afficher les totaux
-    <div className="col-sm-6 col-xl-3" key={title}>
-      <div className="bg-body rounded d-flex align-items-center justify-content-between p-4 border shadow-sm h-100">
-        <i className={`fa ${icon} fa-3x text-${color}`}></i>
-        <div className="ms-3">
-          <div className="mb-2">{title}</div>
-          <h6 className="mb-0 h2 text-center" title={title2}>
-            {value}
-          </h6>
+const Statistiques = ({ totals = {}, loading = false }) => {
+  // Composant interne pour une carte propre et moderne
+  const StatCard = ({ icon, color, title, subtitle, value }) => (
+    <div className="col-sm-6 col-xl-4">
+      <div className="card h-100 border shadow-sm rounded-4 bg-body">
+        <div className="card-body p-4 d-flex flex-column justify-content-between">
+          <div className="d-flex align-items-center justify-content-between mb-3">
+            <span className="text-muted fw-medium small text-uppercase tracking-wider">
+              {title}
+            </span>
+            <div
+              className={`p-3 rounded-3 bg-${color}-subtle text-${color} d-flex align-items-center justify-content-center`}
+              style={{
+                width: "48px",
+                height: "48px",
+                backgroundColor: `var(--bs-${color}-bg-subtle)`,
+              }}
+            >
+              <i className={`fa ${icon} fs-4`}></i>
+            </div>
+          </div>
+          <div>
+            <h3 className="mb-1 fw-bold tracking-tight">{value}</h3>
+            {subtitle && <p className="mb-0 text-muted small">{subtitle}</p>}
+          </div>
         </div>
       </div>
     </div>
   );
 
-  const formatMinutesToHHMM = (minutes) => {
-    const hrs = String(Math.floor(minutes / 60)).padStart(2, "0");
-    const mins = String(Math.floor(minutes % 60)).padStart(2, "0");
-    return `${hrs}h ${mins}min`;
-  };
-
-  const cards = [
-    // Bénéfice global
-    {
-      icon: "fa-chart-line",
-      color: "success",
-      title: "Bénéfice total (FCFA)",
-      title2: new Intl.NumberFormat("fr-FR", {
-        useGrouping: true,
-      }).format(totaux?.benefice_total),
-      value: totaux?.benefice_total ? (
-        formatMontant(totaux?.benefice_total)
-      ) : (
-        <span className="text-muted">00</span>
-      ),
-    },
-
-    // Personnel
-    {
-      icon: "fa-tools",
-      color: "info",
-      title: "Nombre de Mécaniciens",
-      value: totaux?.mecaniciens_total ?? (
-        <span className="text-muted">00</span>
-      ),
-    },
-
-    // Réceptions (workflow initial)
-    {
-      icon: "fa-hourglass-half",
-      color: "danger",
-      title: "Réceptions en attente",
-      value: totaux?.receptions_attente ?? (
-        <span className="text-muted">00</span>
-      ),
-    },
-    {
-      icon: "fa-thumbs-up",
-      color: "info",
-      title: "Réceptions validées",
-      value: totaux?.receptions_validee ?? (
-        <span className="text-muted">00</span>
-      ),
-    },
-    {
-      icon: "fa-check-double",
-      color: "success",
-      title: "Réceptions terminées",
-      value: totaux?.receptions_terminee ?? (
-        <span className="text-muted">00</span>
-      ),
-    },
-
-    // Réparations (workflow avancé)
-    {
-      icon: "fa-wrench",
-      color: "warning",
-      title: "Réparations en cours",
-      value: totaux?.reparations_en_cours ?? (
-        <span className="text-muted">00</span>
-      ),
-    },
-    {
-      icon: "fa-check-circle",
-      color: "primary",
-      title: "Réparations terminées",
-      value: totaux?.reparations_terminees ?? (
-        <span className="text-muted">00</span>
-      ),
-    },
-
-    // Performance
-    {
-      icon: "fa-clock",
-      color: "secondary",
-      title: "Temps moyen de réparation",
-      value: totaux?.temps_moyen_reparation ? (
-        formatMinutesToHHMM(totaux.temps_moyen_reparation)
-      ) : (
-        <span className="text-muted">00</span>
-      ),
-    },
-  ];
+  // Valeurs par défaut sécurisées
+  const bTotal = totals?.benefice_total ?? 0;
+  const formatedFullBenefice =
+    new Intl.NumberFormat("fr-FR").format(bTotal) + " FCFA";
 
   return (
-    <div>
-      {/* Affiche un message d'erreur si une erreur est survenue */}
-      {error && <div className="alert alert-danger">{error}</div>}
+    <div className="container-fluid py-3">
       {loading ? (
         <div
           className="d-flex justify-content-center align-items-center"
-          style={{ height: "80vh" }} // Centrer Loader au milieu de l'écran
+          style={{ height: "80vh" }}
         >
           <Loader />
         </div>
       ) : (
-        <>
-          {/* Section Totaux */}
-          <div className="row g-4 mb-4">
-            {/* Section Totaux */}
-            {cards.map(renderCard)}
-          </div>
-        </>
+        <div className="row g-4">
+          {/* GROUPE 1 : FINANCES & RESSOURCES */}
+          <StatCard
+            icon="fa-wallet"
+            color="success"
+            title="Bénéfice Global"
+            subtitle={
+              bTotal > 1000
+                ? `Total précis : ${formatedFullBenefice}`
+                : "Revenus de la période"
+            }
+            value={formatMontant(bTotal, true)}
+          />
+          <StatCard
+            icon="fa-users"
+            color="info"
+            title="Mécaniciens"
+            subtitle="Effectif total actif"
+            value={totals?.mecaniciens_total ?? 0}
+          />
+          <StatCard
+            icon="fa-clock"
+            color="secondary"
+            title="Temps Moyen"
+            subtitle="Par réparation"
+            value={
+              totals?.temps_moyen_reparation
+                ? formatMinutesToDHMM(totals.temps_moyen_reparation)
+                : "--"
+            }
+          />
+
+          {/* GROUPE 2 : WORKFLOW RÉPARATIONS */}
+          <StatCard
+            icon="fa-wrench"
+            color="warning"
+            title="Réparations en cours"
+            subtitle={`Véhicule${totals?.mecaniciens_en_cours > 1 ? "s" : ""} en trav${totals?.mecaniciens_en_cours > 1 ? "aux" : "ail"}`}
+            value={totals?.reparations_en_cours ?? 0}
+          />
+
+          {/* GROUPE 3 : WORKFLOW RÉCEPTIONS */}
+          <StatCard
+            icon="fa-hourglass-half"
+            color="danger"
+            title="Réceptions en attente"
+            subtitle={
+              totals?.receptions_attente === 0
+                ? "Aucun véhicule en attente"
+                : "À prendre en charge rapidement"
+            }
+            value={totals?.receptions_attente ?? 0}
+          />
+          {/* <StatCard
+            icon="fa-user-check"
+            color="primary"
+            title="Réceptions validées"
+            subtitle="Prêtes pour la réparation"
+            value={totaux?.receptions_validee ?? 0}
+          />
+          <StatCard
+            icon="fa-clipboard-check"
+            color="success"
+            title="Réceptions terminées"
+            subtitle="Historique des fiches closes"
+            value={totaux?.receptions_terminee ?? 0}
+          /> */}
+          <StatCard
+            icon="fa-check-double"
+            color="success"
+            title="Réparations terminées"
+            subtitle={`Véhicule${totals?.reparations_terminees > 1 ? "s" : ""} réparé${totals?.reparations_terminees > 1 ? "s" : ""}`}
+            value={totals?.reparations_terminees ?? 0}
+          />
+        </div>
       )}
     </div>
   );

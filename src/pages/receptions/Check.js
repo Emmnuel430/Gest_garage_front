@@ -1,25 +1,58 @@
 import React, { useEffect, useState } from "react";
-import ToastMessage from "../../components/Layout/ToastMessage";
+import { useToast } from "../../contexts/ToastContext";
 import { slugify } from "../../utils/helpers"; // tu peux faire un helper pour slugifier
 import { fetchWithToken } from "../../utils/fetchWithToken";
+import { VALUE_OPTIONS } from "../../constants/CheckValue";
 
-const VALUE_OPTIONS = {
-  presence: [
-    { label: "Présent", value: "présent" },
-    { label: "Absent", value: "absent" },
-  ],
-  etat: [
-    { label: "Bon", value: "bon" },
-    { label: "Mauvais", value: "mauvais" },
-    { label: "Absent", value: "absent" },
-  ],
-};
-
-const Check = ({ reception, onClose, onUpdate }) => {
+const Check = ({ reception, onClose, onUpdate, loading }) => {
   const [checkItems, setCheckItems] = useState([]);
   const [checkData, setCheckData] = useState({ remarques: "" });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [bulkMode, setBulkMode] = useState("");
+  const { showToast } = useToast();
+
+  const getGoodValue = (type) => {
+    if (type === "presence") return "présent";
+    if (type === "etat") return "bon";
+    return "";
+  };
+
+  const getBadValue = (type) => {
+    if (type === "presence") return "absent";
+    if (type === "etat") return "mauvais";
+    return "";
+  };
+
+  const applyBulkFill = (mode) => {
+    if (!mode) return;
+
+    setCheckData((prev) => {
+      const next = { ...prev };
+
+      checkItems.forEach((item) => {
+        const name = slugify(item.nom);
+        const options = VALUE_OPTIONS[item.type] || [];
+
+        if (!options.length) return;
+
+        if (mode === "good") {
+          next[name] = getGoodValue(item.type);
+          return;
+        }
+
+        if (mode === "bad") {
+          next[name] = getBadValue(item.type);
+          return;
+        }
+
+        if (mode === "random") {
+          const randomIndex = Math.floor(Math.random() * options.length);
+          next[name] = options[randomIndex].value;
+        }
+      });
+
+      return next;
+    });
+  };
 
   // Charger les check_items depuis l'API
   useEffect(() => {
@@ -34,7 +67,10 @@ const Check = ({ reception, onClose, onUpdate }) => {
         setCheckItems(data);
       })
       .catch(() => {
-        setError("Erreur lors du chargement des éléments à vérifier");
+        showToast(
+          "Erreur lors du chargement des éléments à vérifier",
+          "danger",
+        );
       });
   }, []);
 
@@ -64,20 +100,51 @@ const Check = ({ reception, onClose, onUpdate }) => {
     setCheckData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const isFormValid =
+    checkItems.length > 0 &&
+    checkItems.every((item) => {
+      const name = slugify(item.nom);
+      return checkData[name] && checkData[name].toString().trim() !== "";
+    });
+
   const handleSubmit = async () => {
-    setLoading(true);
+    if (!isFormValid) {
+      showToast(
+        "Veuillez remplir tous les champs de contrôle obligatoires.",
+        "danger",
+      );
+      return;
+    }
     try {
       await onUpdate({ ...checkData, id: reception.id });
     } catch (err) {
-      setError("Erreur lors de la soumission");
+      showToast("Erreur lors de la soumission", "danger");
     } finally {
-      setLoading(false);
     }
   };
 
   return (
     <div>
-      {error && <ToastMessage message={error} onClose={() => setError(null)} />}
+      <div className="mb-3">
+        <label className="form-label fw-bold">Remplissage rapide</label>
+        <select
+          disabled={loading}
+          className="form-select"
+          value={bulkMode}
+          onChange={(e) => {
+            const selectedMode = e.target.value;
+            if (!selectedMode) return;
+
+            setBulkMode("");
+            applyBulkFill(selectedMode);
+          }}
+        >
+          <option value="">-- Choisir une action --</option>
+          <option value="good">Tout en bon</option>
+          <option value="bad">Tout en bad</option>
+          <option value="random">Random</option>
+        </select>
+      </div>
 
       <div className="row">
         {checkItems.map((item, idx) => {
@@ -87,9 +154,10 @@ const Check = ({ reception, onClose, onUpdate }) => {
           return (
             <div className="col-md-6 mb-3" key={idx}>
               <label className="form-label fw-bold text-capitalize">
-                {item.nom}
+                {item.nom} <span className="text-danger">*</span>
               </label>
               <select
+                disabled={loading}
                 name={name}
                 className="form-select"
                 value={checkData[name] || ""}
@@ -127,7 +195,7 @@ const Check = ({ reception, onClose, onUpdate }) => {
         <button
           className="btn btn-primary"
           onClick={handleSubmit}
-          disabled={loading}
+          disabled={loading || !isFormValid}
         >
           {loading ? (
             <span>

@@ -1,53 +1,13 @@
-import React, { useEffect, useState } from "react";
-import Loader from "../../components/Layout/Loader"; // Assurez-vous que le chemin est correct
+import React from "react";
+import Loader from "../../components/Layout/Loader";
 import { Line, Bar } from "react-chartjs-2";
-import { fetchWithToken } from "../../utils/fetchWithToken";
+import "../../utils/chartConfig";
 
-const Graph = () => {
-  const [benefData, setBenefData] = useState({});
-  const [receptionsData, setReceptionsData] = useState({});
-
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const response = await fetchWithToken(
-          `${process.env.REACT_APP_API_BASE_URL}/dashboard_stats`,
-        );
-
-        if (!response.ok) {
-          throw new Error("Erreur lors de la récupération des données");
-        }
-
-        const data = await response.json();
-
-        setBenefData(formatTimeSeries(data.benefices_par_jour, "Bénéfices"));
-        setReceptionsData(
-          formatTimeSeries(data.receptions_total, "Réceptions"),
-        );
-      } catch (error) {
-        setError("Impossible de charger les données : " + error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData(); // Appel de la fonction pour récupérer les données
-  }, []);
-
-  const isDatasetEmpty = (chartData) => {
-    return (
-      !chartData.datasets ||
-      chartData.datasets.length === 0 ||
-      chartData.datasets.every((dataset) => dataset.data.length === 0)
-    );
-  };
-
+const Graph = ({
+  loading = false,
+  beneficesParJour = [],
+  receptionsTotal = [],
+}) => {
   const formatTimeSeries = (data, label) => ({
     labels: data.map((item) => {
       const dateObj = new Date(item.date);
@@ -70,10 +30,19 @@ const Graph = () => {
     ],
   });
 
+  const benefData = formatTimeSeries(beneficesParJour, "Bénéfices");
+  const receptionsData = formatTimeSeries(receptionsTotal, "Réceptions");
+
+  const isDatasetEmpty = (chartData) => {
+    return (
+      !chartData.datasets ||
+      chartData.datasets.length === 0 ||
+      chartData.datasets.every((dataset) => dataset.data.length === 0)
+    );
+  };
+
   return (
     <div>
-      {/* Affiche un message d'erreur si une erreur est survenue */}
-      {error && <div className="alert alert-danger">{error}</div>}
       {loading ? (
         <div
           className="d-flex justify-content-center align-items-center"
@@ -85,7 +54,7 @@ const Graph = () => {
         <>
           <div className="row g-4 mb-4">
             <div className="col-sm-12 col-xl-6">
-              <div className="bg-body text-center rounded border p-4">
+              <div className="bg-body text-center rounded-4 border p-4">
                 <div className="d-flex align-items-center justify-content-between mb-4">
                   <h6 className="mb-0">Évolution des Bénéfices / jour</h6>
                 </div>
@@ -100,7 +69,7 @@ const Graph = () => {
             </div>
 
             <div className="col-sm-12 col-xl-6">
-              <div className="bg-body text-center rounded border p-4">
+              <div className="bg-body text-center rounded-4 border p-4">
                 <div className="d-flex align-items-center justify-content-between mb-4">
                   <h6 className="mb-0">Évolution des Réceptions</h6>
                 </div>

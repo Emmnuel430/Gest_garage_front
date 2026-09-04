@@ -4,14 +4,14 @@ import loginImage from "../assets/img/login.png";
 import logo from "../assets/img/logo.png";
 import { useNavigate } from "react-router-dom";
 import { Spinner } from "react-bootstrap";
-import ToastMessage from "../components/Layout/ToastMessage"; // adapte le chemin si besoin
+import { useToast } from "../contexts/ToastContext";
 
 const Login = () => {
   const [pseudo, setPseudo] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(""); // État pour gérer les messages d'erreur
   const [loading, setLoading] = useState(false); // État pour indiquer le chargement
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   useEffect(() => {
     if (sessionStorage.getItem("user-info")) {
@@ -23,11 +23,10 @@ const Login = () => {
     e.preventDefault();
 
     if (!pseudo || !password) {
-      setError("Le pseudo et le mot de passe sont réquis");
+      showToast("Le pseudo et le mot de passe sont requis", "danger");
       return;
     }
 
-    setError("");
     setLoading(true);
 
     try {
@@ -40,13 +39,13 @@ const Login = () => {
             Accept: "application/json",
           },
           body: JSON.stringify({ pseudo, password }),
-        }
+        },
       );
 
       const result = await response.json();
 
       if (!response.ok || result.error) {
-        setError(result.error || "Échec de la connexion");
+        showToast(result.error || "Échec de la connexion", "danger");
         setLoading(false);
         return;
       }
@@ -57,7 +56,7 @@ const Login = () => {
       setLoading(false);
       navigate("/home");
     } catch (e) {
-      setError("Une erreur inattendue s'est produite.");
+      showToast("Une erreur inattendue s'est produite.", "danger");
       setLoading(false);
     }
   }
@@ -71,14 +70,6 @@ const Login = () => {
               <img src={loginImage} alt="Login Illustration" />
             </div>
             <div className="formBx bg-body">
-              {error && (
-                <ToastMessage
-                  message={error}
-                  onClose={() => {
-                    setError(null);
-                  }}
-                />
-              )}
               <img src={logo} alt="Logo" />
               <form onSubmit={login}>
                 <h2 className="h2 text-primary">Connexion</h2>

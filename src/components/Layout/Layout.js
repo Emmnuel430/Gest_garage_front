@@ -7,25 +7,26 @@ import { useNavigate, Link } from "react-router-dom"; // Importation de 'useNavi
 import logo from "../../assets/img/logo.png"; // Importation du logo de l'application.
 import Sidebar from "./Sidebar"; // Importation du composant Sidebar
 import ThemeSwitcher from "../others/ThemeSwitcher"; // Importation du composant ThemeSwitcher
+import ConfirmPopup from "./ConfirmPopup"; // Importation du composant ConfirmPopup
 import { fetchWithToken } from "../../utils/fetchWithToken";
 import useIdleLogout from "../../utils/useIdleLogout";
 import { formatRole } from "../../utils/helpers";
+import Avatar from "./Avatar";
 
 // Définition du composant Layout qui sera utilisé comme un modèle de page (avec du contenu dynamique via 'children')
 const Layout = ({ children }) => {
-  useIdleLogout(15); // Déconnexion après 15 minutes d'inactivité
+  useIdleLogout(20); // Déconnexion après 15 minutes d'inactivité
 
   // Récupération des informations de l'utilisateur depuis le sessionStorage (si elles existent)
   let user = JSON.parse(sessionStorage.getItem("user-info"));
   const [load, setLoad] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   // Utilisation de 'useNavigate' pour effectuer des redirections dans l'application
   const navigate = useNavigate();
 
   // Fonction de déconnexion qui efface les informations de l'utilisateur du sessionStorage et redirige vers la page de connexion
   async function logOut() {
-    // const token = sessionStorage.getItem("token");
-
     try {
       setLoad(true);
       await fetchWithToken(`${process.env.REACT_APP_API_BASE_URL}/logout`, {
@@ -35,6 +36,7 @@ const Layout = ({ children }) => {
       console.error("Erreur de déconnexion :", error);
     } finally {
       setLoad(false);
+      setShowLogoutModal(false);
       // Nettoyage et redirection
       sessionStorage.clear();
       navigate("/");
@@ -74,65 +76,65 @@ const Layout = ({ children }) => {
 
           {/* Section de la barre de navigation avec notifications et messages */}
           <div className="navbar-nav align-items-center ms-auto">
-            {/* Notification d'alertes */}
-            {/* <div className="nav-item dropdown">
-              <button type="button" className="nav-link dropdown-toggle btn">
-                <i className="fa fa-bell me-lg-2"></i>
-                <span className="d-none d-lg-inline-flex items text-body">
-                  Alertes
-                </span>
-              </button>
-              <div className="dropdown-menu dropdown-menu-end bg-body border-0 rounded-bottom m-0">
-                <div className="dropdown-item">
-                  <div className="d-flex align-items-center">
-                    <img
-                      src={loginImage}
-                      alt="Profile"
-                      className="rounded-circle"
-                      width="40"
-                      height="40"
-                    />
-                    <div className="ms-2">
-                      <h6 className="text-body">John sent you a message</h6>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div> */}
-
             {/* Changement de thème */}
             <ThemeSwitcher />
 
             {/* Section pour afficher l'image de profil et permettre la déconnexion */}
             {user && (
               <div className="nav-item dropdown">
-                <Link href="#" className="nav-link dropdown-toggle">
-                  {/* Affichage de l'image de profil */}
-                  <img
-                    src={loginImage} // Remplacez 'loginImage' par l'image appropriée si nécessaire
-                    alt="Profile"
-                    className="rounded-circle"
-                    width="40"
-                    height="40"
+                <Link
+                  href="#"
+                  className="nav-link dropdown-toggle d-flex align-items-center py-0"
+                  data-bs-toggle="dropdown"
+                >
+                  {/* Utilisation de notre nouveau composant Avatar */}
+                  <Avatar
+                    firstName={user.first_name || user.username}
+                    lastName={user.last_name}
+                    size={38}
+                    className="me-2"
+                    role={user.role}
                   />
-                  <span className="d-inline items text-body text-capitalize ms-1">
-                    {/* {user && user.first_name}{" "} */}
-                    <strong>{user && formatRole(user.role)}</strong>
-                  </span>
+
+                  {/* Informations de l'utilisateur */}
+                  <div className="d-none d-sm-flex flex-column text-start lh-sm">
+                    <span className="text-body fw-bold text-capitalize small">
+                      {user.first_name}
+                      <span className="text-uppercase ms-1">
+                        {user.last_name}
+                      </span>
+                    </span>
+                    <span
+                      className="text-muted text-uppercase"
+                      style={{
+                        fontSize: "0.7rem",
+                        fontWeight: "600",
+                        trackingWidth: "0.5px",
+                      }}
+                    >
+                      {formatRole(user.role)}
+                    </span>
+                  </div>
                 </Link>
-                {/* Menu déroulant avec l'option de déconnexion */}
-                <div className="dropdown-menu dropdown-menu-end bg-body border-0 rounded-bottom m-0">
+
+                {/* Menu déroulant avec design moderne */}
+                <div className="dropdown-menu dropdown-menu-end bg-body border shadow-sm rounded-3 mt-2 m-0 p-2">
                   <button
                     type="button"
-                    className="dropdown-item text-body"
-                    onClick={logOut}
+                    className="dropdown-item text-danger rounded-2 d-flex align-items-center gap-2 fw-medium"
+                    onClick={() => setShowLogoutModal(true)}
+                    disabled={load}
                   >
                     {load ? (
-                      <span>
-                        <i className="fas fa-spinner fa-spin"></i> Chargement...
-                      </span>
+                      <>
+                        <i className="fas fa-spinner fa-spin"></i>
+                        <span>Déconnexion en cours...</span>
+                      </>
                     ) : (
-                      <span>Déconnexion</span>
+                      <>
+                        <i className="fas fa-sign-out-alt"></i>
+                        <span>Déconnexion</span>
+                      </>
                     )}
                   </button>
                 </div>
@@ -147,16 +149,40 @@ const Layout = ({ children }) => {
           <div className="bg-body">
             <div className="row small">
               <div className="col-12 col-sm-6 text-center text-sm-start">
-                &copy; {new Date().getFullYear()} <Link to="/">Gest</Link>,
-                AsNumeric - J/E. Tous droits réservés.
+                &copy; {new Date().getFullYear()}{" "}
+                <a
+                  href="https://mon-portofolio-pearl.vercel.app/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Gest
+                </a>
+                , AsNumeric - J/E. Tous droits réservés.
               </div>
               <div className="col-12 col-sm-6 text-center text-sm-end text-muted ">
-                Designed By <Link to="/">Joel E. Daho</Link>
+                Designed By{" "}
+                <a
+                  href="https://mon-portofolio-pearl.vercel.app/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Joel E. Daho
+                </a>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Modal de confirmation de déconnexion */}
+      <ConfirmPopup
+        show={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={logOut}
+        title="Confirmer la déconnexion"
+        body={<p>Êtes-vous sûr de vouloir vous déconnecter ?</p>}
+        btnColor="danger"
+      />
 
       {/* Bouton de retour en haut de la page */}
       <button className="btn btn-lg btn-primary btn-lg-square back-to-top hide">

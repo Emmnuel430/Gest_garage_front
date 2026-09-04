@@ -4,6 +4,7 @@ import userImg from "../../assets/img/user.png"; // Importation de l'image de pr
 import logo from "../../assets/img/logo.png"; // Importation du logo de l'application.
 import SidebarLinks from "./SidebarLinks"; // Importation du composant SidebarLinks qui contient les liens de la barre latérale.
 import { formatRole } from "../../utils/helpers";
+import Avatar from "./Avatar";
 
 const Sidebar = ({ user }) => {
   return (
@@ -24,35 +25,56 @@ const Sidebar = ({ user }) => {
           <h3 className="m-0 ps-2 text-primary">
             {" "}
             {/* Affichage du titre "Gest" */}
-            <strong>Gest v1.2</strong>
+            <strong>Gest v2</strong>
           </h3>
         </Link>
         {/* Section profil utilisateur */}
         <div className="d-flex align-items-center ms-4 mb-4">
-          <div className="position-relative">
-            <img
-              src={userImg} // Affichage de l'image de profil par défaut
-              alt="Profile"
-              className="rounded-circle"
-              width="40"
-              height="40"
-            />
-            {/* Indicateur de statut en ligne */}
-            <div className="bg-success rounded-circle border border-2 border-body position-absolute end-0 bottom-0 p-1"></div>
-          </div>
-          {user && ( // Vérifie si l'utilisateur est défini (authentifié).
-            <div className="ms-3">
-              <h6 className="mb-0">
-                {user.first_name} <strong>{user.last_name}</strong>{" "}
-                {/* Affiche le prénom et le nom de l'utilisateur */}
-              </h6>
-              <span>
-                {user.role === "super_admin"
-                  ? "Admin"
-                  : `Staff (${formatRole(user.role)})`}
-              </span>{" "}
-              {/* Affiche le rôle de l'utilisateur (Admin ou Staff) */}
-            </div>
+          {user && (
+            <>
+              {/* Conteneur de l'Avatar avec la pastille connectée */}
+              <div className="position-relative">
+                <Avatar
+                  firstName={user.first_name}
+                  lastName={user.last_name}
+                  role={user.role}
+                  size={42}
+                />
+                {/* Indicateur de statut en ligne (Point vert) */}
+                <span
+                  className="bg-success rounded-circle border border-2 border-body position-absolute p-1"
+                  style={{
+                    bottom: "1px",
+                    right: "1px",
+                    transform: "translate(10%, 10%)",
+                    width: "12px",
+                    height: "12px",
+                  }}
+                ></span>
+              </div>
+
+              {/* Informations textuelles de l'utilisateur */}
+              <div className="ms-3">
+                <h6 className="mb-0 text-body text-capitalize">
+                  {user.first_name ? user.first_name.trim().split(" ")[0] : ""}{" "}
+                  <span className="text-uppercase fw-bold">
+                    {user.last_name || ""}
+                  </span>
+                </h6>
+                <span
+                  className="text-muted small fw-medium text-uppercase"
+                  style={{ fontSize: "0.75rem", trackingWidth: "0.5px" }}
+                >
+                  {user.role === "admin" ? (
+                    formatRole(user.role)
+                  ) : (
+                    <div>
+                      Staff <br /> ({formatRole(user.role)})
+                    </div>
+                  )}
+                </span>
+              </div>
+            </>
           )}
         </div>
         {/* Inclure les liens de navigation */}

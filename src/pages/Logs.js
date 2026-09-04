@@ -1,238 +1,163 @@
 import React, { useEffect, useState } from "react";
-import { Table, Modal, Button } from "react-bootstrap"; // Importation pour le modal
+import { Modal, Button } from "react-bootstrap";
 import Layout from "../components/Layout/Layout";
 import Loader from "../components/Layout/Loader";
 import HeaderWithFilter from "../components/Layout/HeaderWithFilter";
+import Pagination from "../components/Layout/Pagination";
 import { fetchWithToken } from "../utils/fetchWithToken";
 
 import { format } from "date-fns";
-import { formatRole } from "../utils/helpers";
+import { ACTION_LABELS, formatRole } from "../utils/helpers";
+import { useToast } from "../contexts/ToastContext";
+
+import { getActionColor, getActionLabel } from "../utils/helpers";
+import LogsTable from "../components/logs/LogsTable";
+import LogDetails from "../components/logs/LogDetails";
+
+import usePagination from "../hooks/usePagination";
+import { useCrudModal } from "../hooks/useCrudModal";
+import { useListManager } from "../hooks/useListManager";
 
 const Logs = () => {
   // États pour gérer les données
-  const [allLogs, setAllLogs] = useState([]); // Tous les logs
-  const [filteredLogs, setFilteredLogs] = useState([]); // Logs filtrés
+  const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [filter, setFilter] = useState(""); // Filtre par action
-  const [currentPage, setCurrentPage] = useState(1);
-  const logsPerPage = 10; // Nombre de logs par page
 
-  const [sortOption, setSortOption] = useState(""); // Option de tri
-  const [sortedLogs, setSortedLogs] = useState([]); // Logs triés
+  // On utilise notre hook. Il lit l'URL et nous donne tout prêt !
+  const { filter, setFilter, sortOption, setSortOption, processedList } =
+    useListManager({
+      dataList: logs, // On lui donne la liste brute
+      alphaField: "nom",
+      dateField: "created_at",
+    });
 
-  const [showDetailsModal, setShowDetailsModal] = useState(false); // Contrôle du modal
-  const [selectedLog, setSelectedLog] = useState(null); // Log sélectionné
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    per_page: 15,
+    total: 0,
+  });
 
-  // Fonction pour récupérer tous les logs au chargement initial
+  const { showToast } = useToast();
+  const { modal, openDetails, close } = useCrudModal();
+
+  const {
+    currentPage,
+    goToPage,
+    reset: resetPagination,
+  } = usePagination(pagination.last_page || 1);
+
   useEffect(() => {
+    const controller = new AbortController();
+    let isMounted = true;
+
     const fetchLogs = async () => {
       setLoading(true);
-      setError(null);
+
       try {
         const response = await fetchWithToken(
-          `${process.env.REACT_APP_API_BASE_URL}/logs`
+          `${process.env.REACT_APP_API_BASE_URL}/logs?page=${currentPage}&action=${filter}`,
+          { signal: controller.signal }
         );
+
         if (!response.ok) {
           throw new Error("Erreur lors de la récupération des logs");
         }
+
         const data = await response.json();
-        setAllLogs(data.logs.data || []);
-        setFilteredLogs(data.logs.data || []); // Initialement, tous les logs
+        const logsData = data.logs || [];
+        const logItems = Array.isArray(logsData)
+          ? logsData
+          : logsData.data || [];
+
+        if (isMounted) {
+          setLogs(logItems);
+          if (data.pagination) {
+            setPagination(data.pagination);
+          }
+        }
       } catch (err) {
-        setError("Impossible de charger les données : " + err.message);
+        if (err.name === "AbortError") return;
+        if (isMounted) {
+          showToast(
+            "Impossible de charger les données : " + err.message,
+            "danger",
+          );
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
+
     fetchLogs();
-  }, []);
 
-  // Appliquer le filtre à chaque changement
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+  }, [currentPage, filter]);
+
   useEffect(() => {
-    const filtered = allLogs.filter((log) =>
-      filter ? log.action === filter : true
-    );
-    setFilteredLogs(filtered);
-    setSortedLogs(filtered); // Mettre à jour les logs triés
-    setCurrentPage(1); // Réinitialiser à la première page lors d'un nouveau filtre
-  }, [filter, allLogs]);
-
-  // Pagination : calcul des logs à afficher sur la page actuelle
-  const startIndex = (currentPage - 1) * logsPerPage;
-  const currentLogs = filteredLogs.slice(startIndex, startIndex + logsPerPage);
-  // console.log("currentLogs", currentLogs);
-  // console.log(filteredLogs);
-
-  // Gestion des pages
-  const totalPages = Math.ceil(filteredLogs.length / logsPerPage);
-
-  const handlePageChange = (page) => {
-    if (page > 0 && page <= totalPages) {
-      setCurrentPage(page);
+    if (currentPage !== 1) {
+      resetPagination();
     }
-  };
+  }, [filter]);
 
-  // Traduction des actions en français
-  const getActionLabel = (action) => {
-    switch (action) {
-      case "add":
-        return "Ajout";
-      case "update":
-        return "M à j.";
-      case "delete":
-        return "Suppr.";
-      case "maj":
-        return "M à j.";
-      case "create":
-        return "Créer";
-      case "pause":
-        return "Pause";
-      case "resume":
-        return "Reprendre";
-      default:
-        return "Action inconnue";
-    }
-  };
-
-  // Couleurs des actions
-  const getActionColor = (action) => {
-    switch (action) {
-      case "add":
-        return "bg-success";
-      case "update":
-        return "bg-primary";
-      case "delete":
-        return "bg-danger";
-      case "maj":
-        return "bg-info";
-      case "pause":
-        return "bg-warning";
-      case "resume":
-        return "bg-success";
-      default:
-        return "bg-secondary"; // Couleur par défaut pour les actions inconnues
-    }
-  };
-
-  // Fonction pour ouvrir le modal avec les détails d'un log
   const handleShowDetails = (log) => {
-    setSelectedLog(log);
-    setShowDetailsModal(true);
+    openDetails(log);
   };
 
-  // Fonction pour fermer le modal
-  const handleCloseDetailsModal = () => {
-    setShowDetailsModal(false);
-    setSelectedLog(null);
-  };
-
-  const roleColors = {
-    super_admin: "bg-success",
-    gardien: "bg-warning",
-    secretaire: "bg-info",
-    chef_atelier: "bg-primary",
-    caisse: "bg-info",
-  };
+  const filterOptions = [
+    { value: "", label: "Tous les logs" },
+    ...Object.entries(ACTION_LABELS).map(([value, label]) => ({
+      value,
+      label,
+    })),
+  ];
 
   return (
     <Layout>
       <div className="container mt-2">
-        {error && <div className="alert alert-danger">{error}</div>}
+        <HeaderWithFilter
+          title2="Logs"
+          main={pagination.total}
+          filter={filter}
+          setFilter={setFilter}
+          filterOptions={filterOptions}
+          sortOption={sortOption}
+          setSortOption={setSortOption}
+          hasDateSort={true}
+          hasAlphaSort={false}
+        />
 
         {loading ? (
           <div
             className="d-flex justify-content-center align-items-center"
-            style={{ height: "80vh" }} // Centrer Loader au milieu de l'écran
+            style={{ height: "50vh" }}
           >
             <Loader />
           </div>
         ) : (
           <>
-            <HeaderWithFilter
-              title2="Logs"
-              main={sortedLogs.length || null}
-              filter={filter}
-              setFilter={setFilter}
-              filterOptions={[
-                { value: "", label: "Tous les logs" },
-                { value: "add", label: "Ajouter" },
-                { value: "delete", label: "Supprimer" },
-                { value: "update", label: "M.A.J" },
-                { value: "maj", label: "M.A.J (👤)" },
-                { value: "create", label: "Créer" },
-              ]}
-              sortOption={sortOption}
-              setSortOption={setSortOption}
-              dataList={sortedLogs}
-              setSortedList={setFilteredLogs}
-              dateField="created_at"
+            <LogsTable
+              logs={processedList}
+              onShowDetails={handleShowDetails}
+              getActionColor={getActionColor}
+              getActionLabel={getActionLabel}
             />
-            <Table className="centered-table" hover responsive>
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Fait par</th>
-                  <th>Date</th>
-                  <th>Action</th>
-                  <th>Concerne</th>
-                  <th>Details</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentLogs.length > 0 ? (
-                  currentLogs.map((log, key) => (
-                    <tr key={log.id || key}>
-                      <td>{startIndex + key + 1}</td>
-                      <td>
-                        {log.user_nom || "Inconnu"}{" "}
-                        {log.user_prenom || "Inconnu"} (ID:{" "}
-                        {log.user?.id || "Inconnu"})
-                      </td>
-                      <td>
-                        {log.created_at
-                          ? format(
-                              new Date(log.created_at),
-                              "dd/MM/yyyy HH:mm:ss"
-                            )
-                          : "Date non disponible"}
-                      </td>
-                      <td
-                        className={`${getActionColor(
-                          log.action
-                        )} text-white text-center text-uppercase`}
-                      >
-                        {getActionLabel(log.action)}
-                      </td>
-                      <td>
-                        <span className="text-uppercase">
-                          [{log.table_concernee || "Non disponible"}]
-                        </span>
-                      </td>
-                      <td>
-                        <button
-                          onClick={() => handleShowDetails(log)}
-                          className="btn btn-info btn-sm"
-                        >
-                          <i className="fas fa-eye"></i>
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="6" className="text-center">
-                      Aucun log trouvé.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </Table>
+
+            <Pagination
+              currentPage={currentPage}
+              totalPages={pagination.last_page || 1}
+              onPageChange={goToPage}
+            />
 
             {/* Modal pour afficher les détails d'un log */}
             <Modal
-              show={showDetailsModal}
-              onHide={handleCloseDetailsModal}
+              show={modal.mode === "details"}
+              onHide={close}
               centered
               size="lg"
             >
@@ -240,156 +165,21 @@ const Logs = () => {
                 <Modal.Title>Détails du Log</Modal.Title>
               </Modal.Header>
               <Modal.Body>
-                {selectedLog && (
-                  <div className="container">
-                    <h5 className="fw-bold">• Infos Utilisateur :</h5>
-                    <div className="row mb-2">
-                      <div className="col-6 fw-bold">Nom :</div>
-                      <div className="col-6">
-                        {selectedLog.user_nom || "Inconnu"} (ID:{" "}
-                        {selectedLog.user?.id || "Inconnu"})
-                      </div>
-                    </div>
-                    <div className="row mb-2">
-                      <div className="col-6 fw-bold">Prenom :</div>
-                      <div className="col-6">
-                        {selectedLog.user_prenom || "Inconnu"}
-                      </div>
-                    </div>
-                    <div className="row mb-2">
-                      <div className="col-6 fw-bold">Role :</div>
-                      <div className="col-6">
-                        <span
-                          className={`badge ${
-                            roleColors[selectedLog.user_role] || "bg-dark"
-                          } text-white`}
-                        >
-                          {formatRole(selectedLog.user_role) || "Inconnu"}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="row mb-2">
-                      <div className="col-6 fw-bold">Créé le :</div>
-                      <div className="col-6">
-                        {selectedLog.user_doc
-                          ? format(
-                              new Date(selectedLog.user_doc),
-                              "dd/MM/yyyy HH:mm:ss"
-                            )
-                          : "Non disponible"}
-                      </div>
-                    </div>
-
-                    <div className="row mb-2 mx-auto">
-                      -----------------------
-                    </div>
-                    <div className="row mb-2">
-                      <h5 className="fw-bold">• Infos Log :</h5>
-                      <div className="col-6 fw-bold">Date :</div>
-                      <div className="col-6">
-                        {selectedLog.created_at
-                          ? format(
-                              new Date(selectedLog.created_at),
-                              "dd/MM/yyyy HH:mm:ss"
-                            )
-                          : "Non disponible"}
-                      </div>
-                    </div>
-                    <div className="row mb-2">
-                      <div className="col-6 fw-bold">Action :</div>
-                      <div className={`col-6 text-uppercase `}>
-                        --{" "}
-                        {getActionLabel(selectedLog.action) || "Non disponible"}{" "}
-                        --
-                      </div>
-                    </div>
-                    <div className="row mb-2">
-                      <div className="col-6 fw-bold">Table concernée :</div>
-                      <div className="col-6 text-uppercase">
-                        {selectedLog.table_concernee || "Non disponible"}
-                      </div>
-                    </div>
-                    <div className="row mb-2">
-                      <div className="col-6 fw-bold">Détails :</div>
-                      <div className="col-6">
-                        {selectedLog.details || "Aucun détail disponible"}
-                      </div>
-                    </div>
-                  </div>
+                {modal.data && (
+                  <LogDetails
+                    log={modal.data}
+                    formatRole={formatRole}
+                    getActionColor={getActionColor}
+                    getActionLabel={getActionLabel}
+                  />
                 )}
               </Modal.Body>
               <Modal.Footer>
-                <Button variant="secondary" onClick={handleCloseDetailsModal}>
+                <Button variant="secondary" onClick={close}>
                   Fermer
                 </Button>
               </Modal.Footer>
             </Modal>
-
-            {/* Pagination */}
-            <nav>
-              <ul className="pagination justify-content-center">
-                {/* Bouton Précédent */}
-                <li
-                  className={`page-item ${currentPage === 1 ? "disabled" : ""}`}
-                >
-                  <button
-                    className="page-link"
-                    onClick={() => handlePageChange(currentPage - 1)}
-                  >
-                    Précédent
-                  </button>
-                </li>
-
-                {/* Affichage dynamique des pages */}
-                {[...Array(totalPages).keys()]
-                  .map((_, index) => index + 1)
-                  .filter((page) => {
-                    // Afficher les 3 premières pages, la dernière, ou les pages autour de la page actuelle
-                    return (
-                      page === 1 ||
-                      page === totalPages ||
-                      (page >= currentPage - 1 && page <= currentPage + 1)
-                    );
-                  })
-                  .map((page, index, filteredPages) => (
-                    <React.Fragment key={page}>
-                      {/* Ajoute "..." si une différence entre deux pages dépasse 1 */}
-                      {index > 0 && page !== filteredPages[index - 1] + 1 && (
-                        <li className="page-item disabled">
-                          <span className="page-link">...</span>
-                        </li>
-                      )}
-                      {/* Bouton de la page */}
-                      <li
-                        className={`page-item ${
-                          currentPage === page ? "active" : ""
-                        }`}
-                      >
-                        <button
-                          className="page-link"
-                          onClick={() => handlePageChange(page)}
-                        >
-                          {page}
-                        </button>
-                      </li>
-                    </React.Fragment>
-                  ))}
-
-                {/* Bouton Suivant */}
-                <li
-                  className={`page-item ${
-                    currentPage === totalPages ? "disabled" : ""
-                  }`}
-                >
-                  <button
-                    className="page-link"
-                    onClick={() => handlePageChange(currentPage + 1)}
-                  >
-                    Suivant
-                  </button>
-                </li>
-              </ul>
-            </nav>
           </>
         )}
       </div>
