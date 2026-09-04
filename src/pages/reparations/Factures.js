@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Modal, Button } from "react-bootstrap";
 import Layout from "../../components/Layout/Layout";
 import Loader from "../../components/Layout/Loader";
@@ -56,43 +56,37 @@ const Factures = () => {
     resetPagination();
   };
 
-  useEffect(() => {
-    const controller = new AbortController();
-    let isMounted = true;
-
-    const fetchFactures = async () => {
+  const fetchFactures = useCallback(
+    async (signal) => {
       setLoading(true);
       try {
         const response = await fetchWithToken(
           `${process.env.REACT_APP_API_BASE_URL}/liste_factures?page=${currentPage}&statut=${filter}&search=${encodeURIComponent(searchQuery)}`,
-          { signal: controller.signal }
+          signal ? { signal } : undefined,
         );
         const data = await response.json();
-        if (isMounted) {
-          setFactures(data.factures || []);
-          if (data.pagination) {
-            setPagination(data.pagination);
-          }
+        setFactures(data.factures || []);
+        if (data.pagination) {
+          setPagination(data.pagination);
         }
       } catch (error) {
         if (error.name === "AbortError") return;
-        if (isMounted) {
-          showToast("Erreur lors du chargement des factures.", "danger");
-        }
+        showToast("Erreur lors du chargement des factures.", "danger");
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
-    };
+    },
+    [currentPage, filter, searchQuery, showToast],
+  );
 
-    fetchFactures();
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchFactures(controller.signal);
 
     return () => {
-      isMounted = false;
       controller.abort();
     };
-  }, [currentPage, filter, searchQuery]);
+  }, [fetchFactures]);
 
   useEffect(() => {
     if (currentPage !== 1) {
