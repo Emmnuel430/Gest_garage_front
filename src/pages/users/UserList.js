@@ -73,7 +73,7 @@ const UserList = () => {
       try {
         const response = await fetchWithToken(
           `${process.env.REACT_APP_API_BASE_URL}/liste_user?page=${currentPage}&role=${filter}&search=${encodeURIComponent(searchQuery)}`,
-          { signal: controller.signal }
+          { signal: controller.signal },
         );
 
         if (!response.ok) {
@@ -109,13 +109,13 @@ const UserList = () => {
       isMounted = false;
       controller.abort();
     };
-  }, [currentPage, filter, searchQuery]);
+  }, [currentPage, filter, searchQuery, showToast]);
 
   useEffect(() => {
     if (currentPage !== 1) {
       resetPagination();
     }
-  }, [filter, searchQuery]);
+  }, [filter, searchQuery, currentPage]);
 
   const handleDelete = async () => {
     const selectedUser = modal.data;

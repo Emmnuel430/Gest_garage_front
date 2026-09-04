@@ -41,9 +41,6 @@ const Vehicules = () => {
     reset: resetPagination,
   } = usePagination(pagination.last_page || 1);
 
-  const userInfo = JSON.parse(sessionStorage.getItem("user-info"));
-  const userId = userInfo?.id;
-
   const handleSearch = (query) => {
     setSearchQuery(query);
     resetPagination();
@@ -58,7 +55,7 @@ const Vehicules = () => {
       try {
         const response = await fetchWithToken(
           `${process.env.REACT_APP_API_BASE_URL}/liste_vehicules?page=${currentPage}&search=${encodeURIComponent(searchQuery)}`,
-          { signal: controller.signal }
+          { signal: controller.signal },
         );
         const data = await response.json();
         if (isMounted) {
@@ -85,13 +82,13 @@ const Vehicules = () => {
       isMounted = false;
       controller.abort();
     };
-  }, [currentPage, searchQuery]);
+  }, [currentPage, searchQuery, showToast]);
 
   useEffect(() => {
     if (currentPage !== 1) {
       resetPagination();
     }
-  }, [searchQuery]);
+  }, [searchQuery, currentPage]);
 
   const handleConfirmGeneration = async () => {
     const receptionId = modal.data?.receptions?.[0]?.id;

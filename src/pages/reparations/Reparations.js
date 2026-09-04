@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Layout from "../../components/Layout/Layout";
 import Loader from "../../components/Layout/Loader";
 import { Card, Button, Modal } from "react-bootstrap";
@@ -24,9 +24,6 @@ const Reparations = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { showToast } = useToast();
   const { modal, open, openDetails, close } = useCrudModal();
-
-  const userInfo = JSON.parse(sessionStorage.getItem("user-info"));
-  const userId = userInfo?.id;
 
   const filteredReparations = allReparations.filter((reparation) =>
     reparation.reception?.vehicule?.immatriculation
@@ -54,7 +51,7 @@ const Reparations = () => {
     startIndex + reparationsPerPage,
   );
 
-  const fetchReparations = async () => {
+  const fetchReparations = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetchWithToken(
@@ -68,15 +65,15 @@ const Reparations = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
 
   useEffect(() => {
     fetchReparations();
-  }, []);
+  }, [fetchReparations]);
 
   useEffect(() => {
     resetPagination();
-  }, [searchQuery]);
+  }, [searchQuery, resetPagination]);
 
   const handleTerminerReparation = async () => {
     const selectedReparation = modal.data;
