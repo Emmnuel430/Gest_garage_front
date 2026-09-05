@@ -112,10 +112,8 @@ const UserList = () => {
   }, [currentPage, filter, searchQuery, showToast]);
 
   useEffect(() => {
-    if (currentPage !== 1) {
-      resetPagination();
-    }
-  }, [filter, searchQuery, currentPage]);
+    resetPagination();
+  }, [filter, searchQuery, resetPagination]);
 
   const handleDelete = async () => {
     const selectedUser = modal.data;

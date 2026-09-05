@@ -86,10 +86,8 @@ const Factures = () => {
   }, [fetchFactures]);
 
   useEffect(() => {
-    if (currentPage !== 1) {
-      resetPagination();
-    }
-  }, [filter, searchQuery, currentPage, resetPagination]);
+    resetPagination();
+  }, [filter, searchQuery, resetPagination]);
 
   const handleValiderPaiement = async () => {
     const selectedFacture = modal.data;

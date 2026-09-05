@@ -97,13 +97,11 @@ const Logs = () => {
       isMounted = false;
       controller.abort();
     };
-  }, [currentPage, filter]);
+  }, [currentPage, filter, showToast]);
 
   useEffect(() => {
-    if (currentPage !== 1) {
-      resetPagination();
-    }
-  }, [filter]);
+    resetPagination();
+  }, [filter, resetPagination]);
 
   const handleShowDetails = (log) => {
     openDetails(log);

@@ -85,10 +85,8 @@ const Vehicules = () => {
   }, [currentPage, searchQuery, showToast]);
 
   useEffect(() => {
-    if (currentPage !== 1) {
-      resetPagination();
-    }
-  }, [searchQuery, currentPage, resetPagination]);
+    resetPagination();
+  }, [searchQuery, resetPagination]);
 
   const handleConfirmGeneration = async () => {
     const receptionId = modal.data?.receptions?.[0]?.id;

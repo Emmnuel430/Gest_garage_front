@@ -81,13 +81,11 @@ const BilletsSortie = () => {
       isMounted = false;
       controller.abort();
     };
-  }, [currentPage, searchQuery]);
+  }, [currentPage, searchQuery, showToast]);
 
   useEffect(() => {
-    if (currentPage !== 1) {
-      resetPagination();
-    }
-  }, [searchQuery]);
+    resetPagination();
+  }, [searchQuery, resetPagination]);
 
   return (
     <Layout>

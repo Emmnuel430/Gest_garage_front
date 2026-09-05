@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { Table, Button, Modal } from "react-bootstrap";
 import Layout from "../../components/Layout/Layout";
 import HeaderWithFilter from "../../components/Layout/HeaderWithFilter";
@@ -56,7 +56,6 @@ const CheckReception = () => {
   } = usePagination(pagination.last_page || 1);
 
   const userInfo = JSON.parse(sessionStorage.getItem("user-info"));
-  const userId = userInfo ? userInfo.id : null;
   const userRole = userInfo ? userInfo.role : null;
 
   const handleSearch = (query) => {
@@ -118,13 +117,11 @@ const CheckReception = () => {
       isMounted = false;
       controller.abort();
     };
-  }, [currentPage, filter, searchQuery]);
+  }, [currentPage, filter, searchQuery, showToast]);
 
   useEffect(() => {
-    if (currentPage !== 1) {
-      resetPagination();
-    }
-  }, [filter, searchQuery]);
+    resetPagination();
+  }, [filter, searchQuery, resetPagination]);
 
   const handleUpdateReception = async (updatedReception) => {
     setUpdateLoading(true);

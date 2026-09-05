@@ -41,44 +41,24 @@ const AddReception = () => {
   };
 
   useEffect(() => {
-    fetchMecaniciens();
-  }, []);
-
-  // const checkActiveTools = async (mecanicienId) => {
-  //   if (!mecanicienId) {
-  //     setActiveTools([]);
-  //     return;
-  //   }
-  //   try {
-  //     const response = await fetchWithToken(
-  //       `${process.env.REACT_APP_API_BASE_URL}/mecaniciens/${mecanicienId}/outils-actifs`,
-  //     );
-  //     const data = await response.json();
-  //     if (response.ok) {
-  //       setActiveTools(data || []);
-  //     } else {
-  //       setActiveTools([]);
-  //     }
-  //   } catch (error) {
-  //     setActiveTools([]);
-  //   }
-  // };
-
-  const fetchMecaniciens = async () => {
-    try {
-      const response = await fetchWithToken(
-        `${process.env.REACT_APP_API_BASE_URL}/liste_mecaniciens`,
-      );
-      const data = await response.json();
-      if (response.ok) {
-        setMecaniciens(data.mecaniciens);
-      } else {
-        showToast(data.error || "Une erreur est survenue.", "danger");
+    const fetchMecaniciens = async () => {
+      try {
+        const response = await fetchWithToken(
+          `${process.env.REACT_APP_API_BASE_URL}/liste_mecaniciens`,
+        );
+        const data = await response.json();
+        if (response.ok) {
+          setMecaniciens(data.mecaniciens);
+        } else {
+          showToast(data.error || "Une erreur est survenue.", "danger");
+        }
+      } catch (error) {
+        showToast("Une erreur inattendue s'est produite.", "danger");
       }
-    } catch (error) {
-      showToast("Une erreur inattendue s'est produite.", "danger");
-    }
-  };
+    };
+
+    fetchMecaniciens();
+  }, [showToast]);
 
   const handleShowModal = () => {
     if (

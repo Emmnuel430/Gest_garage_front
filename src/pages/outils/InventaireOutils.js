@@ -89,13 +89,11 @@ const InventaireOutils = () => {
       isMounted = false;
       controller.abort();
     };
-  }, [currentPage, searchQuery]);
+  }, [currentPage, searchQuery, showToast]);
 
   useEffect(() => {
-    if (currentPage !== 1) {
-      resetPagination();
-    }
-  }, [searchQuery]);
+    resetPagination();
+  }, [searchQuery, resetPagination]);
 
   const resetFields = () => {
     setLibelle("");

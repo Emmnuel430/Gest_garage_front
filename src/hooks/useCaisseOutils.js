@@ -101,10 +101,8 @@ export const useCaisseOutils = () => {
   }, [fetchData]);
 
   useEffect(() => {
-    if (currentPage !== 1) {
-      resetPagination();
-    }
-  }, [filter, searchQuery]);
+    resetPagination();
+  }, [filter, searchQuery, resetPagination]);
 
   // Action : Exécuter un nouveau prêt
   const executePret = useCallback(

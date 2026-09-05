@@ -99,13 +99,11 @@ const Mecaniciens = () => {
       isMounted = false;
       controller.abort();
     };
-  }, [currentPage, filter, searchQuery]);
+  }, [currentPage, filter, searchQuery, showToast]);
 
   useEffect(() => {
-    if (currentPage !== 1) {
-      resetPagination();
-    }
-  }, [filter, searchQuery]);
+    resetPagination();
+  }, [filter, searchQuery, resetPagination]);
 
   const handleUpdateMecanicien = async (updatedMecanicien) => {
     try {

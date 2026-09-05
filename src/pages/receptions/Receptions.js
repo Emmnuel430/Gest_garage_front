@@ -48,7 +48,6 @@ const Receptions = () => {
   } = usePagination(pagination.last_page || 1);
 
   const userInfo = JSON.parse(sessionStorage.getItem("user-info"));
-  const userId = userInfo ? userInfo.id : null;
   const userRole = userInfo ? userInfo.role : null;
 
   const handleSearch = (query) => {
@@ -104,13 +103,11 @@ const Receptions = () => {
       isMounted = false;
       controller.abort();
     };
-  }, [currentPage, filter, searchQuery]);
+  }, [currentPage, filter, searchQuery, showToast]);
 
   useEffect(() => {
-    if (currentPage !== 1) {
-      resetPagination();
-    }
-  }, [filter, searchQuery]);
+    resetPagination();
+  }, [filter, searchQuery, resetPagination]);
 
   const handleDelete = async () => {
     const selectedReception = modal.data;

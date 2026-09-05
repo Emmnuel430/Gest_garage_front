@@ -108,10 +108,8 @@ const Chronos = () => {
   }, [currentPage, searchQuery, refreshTrigger, showToast]);
 
   useEffect(() => {
-    if (currentPage !== 1) {
-      resetPagination();
-    }
-  }, [searchQuery, currentPage, resetPagination]);
+    resetPagination();
+  }, [searchQuery, resetPagination]);
 
   const [, setCurrentTime] = useState(Date.now());
 

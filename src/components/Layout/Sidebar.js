@@ -25,7 +25,7 @@ const Sidebar = ({ user }) => {
           <h3 className="m-0 ps-2 text-primary">
             {" "}
             {/* Affichage du titre "Gest" */}
-            <strong>Gest v2</strong>
+            <strong>Gest v{process.env.REACT_APP_VERSION}</strong>
           </h3>
         </Link>
         {/* Section profil utilisateur */}

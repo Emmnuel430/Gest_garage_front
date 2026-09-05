@@ -27,7 +27,7 @@ const Parametres = () => {
     };
 
     fetchTarifs();
-  }, []);
+  }, [showToast]);
 
   // ✅ Modifier les tarifs
   const handleSubmit = async () => {

@@ -72,7 +72,7 @@ const Check = ({ reception, onClose, onUpdate, loading }) => {
           "danger",
         );
       });
-  }, []);
+  }, [showToast]);
 
   useEffect(() => {
     if (!reception || !reception.check_reception) {
