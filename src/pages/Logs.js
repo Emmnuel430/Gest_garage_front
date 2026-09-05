@@ -6,7 +6,6 @@ import HeaderWithFilter from "../components/Layout/HeaderWithFilter";
 import Pagination from "../components/Layout/Pagination";
 import { fetchWithToken } from "../utils/fetchWithToken";
 
-import { format } from "date-fns";
 import { ACTION_LABELS, formatRole } from "../utils/helpers";
 import { useToast } from "../contexts/ToastContext";
 

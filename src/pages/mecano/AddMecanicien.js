@@ -66,7 +66,6 @@ const AddMecanicien = () => {
   const addMecanicien = async () => {
     setLoading(true);
     try {
-      const userInfo = JSON.parse(sessionStorage.getItem("user-info"));
       const payload = {
         ...mecanicien,
       };

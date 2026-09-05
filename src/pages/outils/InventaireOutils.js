@@ -6,7 +6,6 @@ import { fetchWithToken } from "../../utils/fetchWithToken";
 import ConfirmPopup from "../../components/Layout/ConfirmPopup";
 import HeaderWithFilter from "../../components/Layout/HeaderWithFilter";
 import SearchBar from "../../components/Layout/SearchBar";
-import Pagination from "../../components/Layout/Pagination";
 
 import usePagination from "../../hooks/usePagination";
 import { useCrudModal } from "../../hooks/useCrudModal";

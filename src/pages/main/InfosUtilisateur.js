@@ -6,24 +6,6 @@ const InfosUtilisateur = () => {
 
   if (!user) return <p>Utilisateur non connecté</p>;
 
-  // Icône selon le rôle (tu peux adapter ici)
-  const renderIcon = () => {
-    switch (user.role) {
-      case "admin":
-        return <i className="fa fa-user-shield fa-3x text-primary"></i>;
-      case "reception":
-        return <i className="fa fa-user-edit fa-3x text-primary"></i>;
-      case "caisse_outils":
-        return <i className="fa fa-tools fa-3x text-primary"></i>;
-      case "caisse":
-        return <i className="fa fa-cash-register fa-3x text-primary"></i>;
-      case "gardien":
-        return <i className="fa fa-warehouse fa-3x text-primary"></i>;
-      default:
-        return <i className="fa fa-user fa-3x text-primary"></i>;
-    }
-  };
-
   return (
     <div className="card card-style1 border my-2">
       <div className="card-body p-1-9 p-sm-2-3 p-md-6 p-lg-7">
@@ -34,7 +16,6 @@ const InfosUtilisateur = () => {
               className="d-inline-flex align-items-center justify-content-center bg-light rounded-circle"
               style={{ width: "120px", height: "120px" }}
             >
-              {/* {renderIcon()} */}
               <Avatar
                 firstName={user.first_name}
                 lastName={user.last_name}

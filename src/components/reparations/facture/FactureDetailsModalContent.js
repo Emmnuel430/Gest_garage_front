@@ -1,5 +1,4 @@
 import React from "react";
-import { format } from "date-fns";
 import BadgeVehicule from "../../others/BadgeVehicule";
 import {
   formatDateTime,

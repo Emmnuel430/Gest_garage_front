@@ -19,8 +19,8 @@ const SearchBar = ({
 
   // Synchronisation si la valeur externe change
   useEffect(() => {
-    if (controlledValue !== undefined && controlledValue !== inputValue) {
-      setInputValue(controlledValue);
+    if (controlledValue !== undefined) {
+      setInputValue((prev) => (prev !== controlledValue ? controlledValue : prev));
     }
   }, [controlledValue]);
 

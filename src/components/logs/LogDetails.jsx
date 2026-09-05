@@ -9,8 +9,6 @@ const LogDetails = ({ log, formatRole, getActionColor, getActionLabel }) => {
 
   const lastName = log.user_nom || log.user?.last_name || "";
 
-  const userName = `${firstName} ${lastName}`.trim() || "Utilisateur inconnu";
-
   const role = log.user_role || log.user?.role;
 
   const formatDateTime = (date) => {

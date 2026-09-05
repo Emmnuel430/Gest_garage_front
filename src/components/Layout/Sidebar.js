@@ -1,6 +1,5 @@
 import React from "react"; // Importation de React pour utiliser JSX et les fonctionnalités React.
 import { Link } from "react-router-dom"; // Importation de Link pour la navigation.
-import userImg from "../../assets/img/user.png"; // Importation de l'image de profil par défaut.
 import logo from "../../assets/img/logo.png"; // Importation du logo de l'application.
 import SidebarLinks from "./SidebarLinks"; // Importation du composant SidebarLinks qui contient les liens de la barre latérale.
 import { formatRole } from "../../utils/helpers";

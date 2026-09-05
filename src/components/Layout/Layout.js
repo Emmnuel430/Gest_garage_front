@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import "../../assets/css/Home.css"; // Importation du fichier CSS pour la mise en page
 import HomeScript from "../../assets/js/HomeScript"; // Importation d'un script personnalisé pour la page
-import loginImage from "../../assets/img/user.png"; // Importation d'une image pour le profil utilisateur
 import { useNavigate, Link } from "react-router-dom"; // Importation de 'useNavigate' et 'Link' pour la navigation
 import logo from "../../assets/img/logo.png"; // Importation du logo de l'application.
 import Sidebar from "./Sidebar"; // Importation du composant Sidebar

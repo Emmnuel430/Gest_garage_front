@@ -66,8 +66,6 @@ const LogsTable = ({
 
               const lastName = log.user_nom || log.user?.last_name || "";
 
-              const userName = `${firstName} ${lastName}`.trim() || "Inconnu";
-
               return (
                 <tr
                   key={log.id || index}

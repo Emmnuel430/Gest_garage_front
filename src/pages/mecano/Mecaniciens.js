@@ -47,9 +47,6 @@ const Mecaniciens = () => {
     reset: resetPagination,
   } = usePagination(pagination.last_page || 1);
 
-  const userInfo = JSON.parse(sessionStorage.getItem("user-info"));
-  const userId = userInfo ? userInfo.id : null;
-
   const handleSearch = (query) => {
     setSearchQuery(query);
     resetPagination();
