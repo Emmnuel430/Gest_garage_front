@@ -1,192 +1,146 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-// import { useState } from "react"; // Importation de useState pour gérer l'état local
-// import useRappelCount from "../hooks/useRappelCount";
+import routes from "../../routeConfig";
 
 const SidebarLinks = ({ user }) => {
-  /* const [isGestionOpen, setGestionOpen] = useState(false);
-  const [isDocsOpen, setDocsOpen] = useState(false);
-  const [isPersonnesOpen, setPersonnesOpen] = useState(false); */
   const location = useLocation();
+
+  const activeLinkRef = useRef(null);
+  // Déclenche le scroll automatique vers l'élément actif au chargement initial ou changement d'URL
+  useEffect(() => {
+    if (activeLinkRef.current) {
+      activeLinkRef.current.scrollIntoView({
+        behavior: "smooth", // "smooth" pour une animation fluide, "auto" pour un saut instantané
+        block: "nearest", // Aligne l'élément seulement s'il n'est pas déjà visible dans la zone de scroll
+      });
+    }
+  }, [location.pathname]); // S'exécute à chaque changement de page
+
   if (!user) return null;
 
-  const isActive = (path) => location.pathname === path;
-  /* const isGestionTechniqueActive = () => {
-    const routes = [
-      "/receptions",
-      "/check-reception",
-      "/chronos",
-      "/reparations",
-    ];
-    return routes.some((route) => isActive(route));
-  };
-  const isDocumentsActive = () => {
-    const routes = ["/billets-sortie", "/factures", "/vehicules"];
-    return routes.some((route) => isActive(route));
+  const getOrderValue = (value, fallback = Number.MAX_SAFE_INTEGER) => {
+    return typeof value === "number" && Number.isFinite(value)
+      ? value
+      : fallback;
   };
 
-  const toggleGestion = () => setGestionOpen(!isGestionOpen);
-  const toggleDocs = () => setDocsOpen(!isDocsOpen);
-  const togglePersonnes = () => setPersonnesOpen(!isPersonnesOpen); */
+  const hasRole = (allowedRoles = []) => {
+    if (!allowedRoles?.length) return true;
+    return allowedRoles.includes(user?.role);
+  };
 
-  const hasRole = (allowedRoles) => allowedRoles.includes(user?.role);
+  const isActive = (link) => {
+    if (link?.match?.length) {
+      return link.match.includes(location.pathname);
+    }
+
+    return location.pathname === link?.to;
+  };
+
+  // copie du tableau pour ne pas modifier l'original
+  const routeSidebarGroups = [...routes]
+    // garde seulement les routes de la sidebar
+    .filter((route) => route.sidebar)
+    // mémorise leur position d'origine
+    .map((route, index) => ({ ...route, originalIndex: index }))
+    .sort((a, b) => {
+      // Tri par ordre de groupe croissant
+      const groupOrderDiff =
+        getOrderValue(a.groupOrder, 999) - getOrderValue(b.groupOrder, 999);
+      if (groupOrderDiff !== 0) return groupOrderDiff;
+
+      // Tri par ordre de lien croissant
+      const orderDiff =
+        getOrderValue(a.order, 999) - getOrderValue(b.order, 999);
+      if (orderDiff !== 0) return orderDiff;
+
+      // Si les deux (liens) sont égaux, on garde l'ordre d'origine
+      return a.originalIndex - b.originalIndex;
+    })
+    .reduce((groups, route) => {
+      // On regroupe les routes par groupe
+      const groupKey = route.group || "main";
+      const group = groups.find((item) => item.title === groupKey);
+      const link = {
+        label: route.label,
+        to: route.path,
+        icon: route.icon,
+        roles: route.roles,
+        className: route.className,
+        match: route.match,
+        order: route.order,
+        originalIndex: route.originalIndex,
+      };
+
+      // Si le groupe existe déjà, on ajoute le lien à ce groupe,
+      if (group) {
+        group.links.push(link);
+      } else {
+        //  sinon on crée un nouveau groupe
+        groups.push({
+          title: route.group === "main" ? null : route.group,
+          groupOrder: getOrderValue(route.groupOrder, 999),
+          originalIndex: route.originalIndex,
+          links: [link],
+        });
+      }
+
+      return groups;
+    }, []);
+
+  // On trie les groupes créés par ordre de groupe croissant, puis par ordre d'origine
+  const orderedGroups = [...routeSidebarGroups].sort((a, b) => {
+    const groupOrderDiff = (a.groupOrder ?? 999) - (b.groupOrder ?? 999);
+    if (groupOrderDiff !== 0) return groupOrderDiff;
+
+    return a.originalIndex - b.originalIndex;
+  });
 
   return (
     <div className="navbar-nav w-100">
-      {/* Dashboard - accessible à tous */}
-      <Link
-        to="/home"
-        className={`nav-item nav-link ${
-          isActive("/home") ? "active bg-body-secondary fw-bold" : ""
-        }`}
-      >
-        <div>
-          <i className="fa fa-home me-2"></i>
-          <span className="text-body">Dashboard</span>
-        </div>
-      </Link>
-      <>
-        {hasRole(["gardien", "secretaire", "chef_atelier", "super_admin"]) && (
-          <Link
-            to="/receptions"
-            className={`nav-link d-flex align-items-center ${
-              isActive("/receptions") ? "active bg-body-secondary fw-bold" : ""
-            }`}
-          >
-            <i className="fa fa-car me-2"></i>
-            <span className="text-body">
-              Réceptions <br /> de véhicules
-            </span>
-          </Link>
-        )}
+      {orderedGroups.map((group, groupIndex) => {
+        const visibleLinks = group.links
+          .filter((link) => hasRole(link.roles))
+          .sort((a, b) => {
+            const orderDiff =
+              getOrderValue(a.order, 999) - getOrderValue(b.order, 999);
+            if (orderDiff !== 0) return orderDiff;
 
-        {hasRole(["secretaire", "super_admin"]) && (
-          <Link
-            to="/check-reception"
-            className={`nav-link d-flex align-items-center ${
-              isActive("/check-reception")
-                ? "active bg-body-secondary fw-bold"
-                : ""
-            }`}
-          >
-            <i className="fa fa-check-circle me-2"></i>
-            <span className="text-body">
-              Valider les <br /> réceptions
-            </span>
-          </Link>
-        )}
+            return a.originalIndex - b.originalIndex;
+          });
 
-        {hasRole(["secretaire", "chef_atelier", "super_admin"]) && (
-          <Link
-            to="/chronos"
-            className={`nav-link d-flex align-items-center ${
-              isActive("/chronos") ? "active bg-body-secondary fw-bold" : ""
-            }`}
-          >
-            <i className="fa fa-stopwatch me-2"></i>
-            <span className="text-body">Chronos</span>
-          </Link>
-        )}
+        if (!visibleLinks.length) return null;
 
-        {hasRole(["chef_atelier", "super_admin"]) && (
-          <Link
-            to="/reparations"
-            className={`nav-link d-flex align-items-center ${
-              isActive("/reparations") ? "active bg-body-secondary fw-bold" : ""
-            }`}
-          >
-            <i className="fa fa-wrench me-2"></i>
-            <span className="text-body">Réparations</span>
-          </Link>
-        )}
-      </>
-      {hasRole(["caisse", "super_admin"]) && (
-        <Link
-          to="/factures"
-          className={`nav-link d-flex align-items-center ${
-            isActive("/factures") ? "active bg-body-secondary fw-bold" : ""
-          }`}
-        >
-          <i className="fa fa-file-invoice-dollar me-2"></i>
-          <span className="text-body">Factures</span>
-        </Link>
-      )}
-      {hasRole(["secretaire", "chef_atelier", "super_admin", "caisse"]) && (
-        <Link
-          to="/vehicules"
-          className={`nav-link d-flex align-items-center ${
-            isActive("/vehicules") ? "active bg-body-secondary fw-bold" : ""
-          }`}
-        >
-          <i className="fa fa-car-side me-2"></i>
-          <span className="text-body">Véhicules</span>
-        </Link>
-      )}
-      {hasRole(["secretaire", "super_admin", "gardien"]) && (
-        <Link
-          to="/billets-sortie"
-          className={`nav-link d-flex align-items-center ${
-            isActive("/billets-sortie")
-              ? "active bg-body-secondary fw-bold"
-              : ""
-          }`}
-        >
-          <i className="fa fa-receipt me-2"></i>
-          <span className="text-body">Billets de sortie</span>
-        </Link>
-      )}
-      {hasRole(["super_admin", "secretaire"]) && (
-        <>
-          <Link
-            to="/mecaniciens"
-            className={`nav-link d-flex align-items-center ${
-              isActive("/mecaniciens") ? "active bg-body-secondary fw-bold" : ""
-            }`}
-          >
-            <i className="fa fa-user-cog me-2"></i>
-            <span className="text-body">Mécaniciens</span>
-          </Link>
+        return (
+          <div key={groupIndex} className="w-100">
+            {group.title && (
+              <h6 className="text-uppercase text-muted ps-3 mt-3 mb-2">
+                {group.title}
+              </h6>
+            )}
 
-          {hasRole(["super_admin"]) && (
-            <Link
-              to="/utilisateurs"
-              className={`nav-link d-flex align-items-center ${
-                isActive("/utilisateurs")
-                  ? "active bg-body-secondary fw-bold"
-                  : ""
-              }`}
-            >
-              <i className="fa fa-user-friends me-2"></i>
-              <span className="text-body">Utilisateurs</span>
-            </Link>
-          )}
-        </>
-      )}
-      {/* Logs - Super Admin */}
-      {user.role === "super_admin" && (
-        <Link
-          to="/logs"
-          className={`nav-item nav-link  ${
-            isActive("/logs") ? "active bg-body-secondary fw-bold" : ""
-          }`}
-        >
-          <div>
-            <i className="fa fa-file-alt me-2"></i>
-            <span className="text-body">Logs</span>
+            {visibleLinks.map((link, index) => {
+              const isCurrentActive = isActive(link);
+
+              return (
+                <Link
+                  key={`${group.title || "main"}-${index}`}
+                  to={link.to}
+                  ref={isCurrentActive ? activeLinkRef : null}
+                  className={`${link.className || "nav-link d-flex align-items-center"} ${
+                    isCurrentActive ? "active bg-body-secondary fw-bold" : ""
+                  }`}
+                >
+                  <div className="d-flex align-items-center">
+                    <i className={`fa fa-${link.icon} me-2`}></i>
+                    <span className="text-body">{link.label}</span>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
-        </Link>
-      )}
-      {hasRole(["super_admin"]) && (
-        <Link
-          to="/parametres"
-          className={`nav-link d-flex align-items-center ${
-            isActive("/parametres") ? "active bg-body-secondary fw-bold" : ""
-          }`}
-        >
-          <i className="fa fa-cogs me-2"></i>
-          <span className="text-body">Paramètres</span>
-        </Link>
-      )}
+        );
+      })}
     </div>
   );
 };

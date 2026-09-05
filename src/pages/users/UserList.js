@@ -1,246 +1,290 @@
 import React, { useState, useEffect } from "react";
-import { Table, Button } from "react-bootstrap";
-import { Link } from "react-router-dom";
-import Layout from "../../components/Layout/Layout"; // Composant Layout qui contient la structure générale de la page
-import HeaderWithFilter from "../../components/Layout/HeaderWithFilter"; // Composant pour l'en-tête avec filtre
-import Loader from "../../components/Layout/Loader"; // Composant pour le loader
-import ConfirmPopup from "../../components/Layout/ConfirmPopup"; // Composant de modal de confirmation pour la suppression d'utilisateur
-import SearchBar from "../../components/Layout/SearchBar"; // Composant pour la barre de recherche
+import { Button } from "react-bootstrap";
+import Layout from "../../components/Layout/Layout";
+import HeaderWithFilter from "../../components/Layout/HeaderWithFilter";
+import Loader from "../../components/Layout/Loader";
+import ConfirmPopup from "../../components/Layout/ConfirmPopup";
+import SearchBar from "../../components/Layout/SearchBar";
+import Pagination from "../../components/Layout/Pagination";
 import { fetchWithToken } from "../../utils/fetchWithToken";
+import { useToast } from "../../contexts/ToastContext";
+import UserTable from "../../components/users/UserTable";
+
+import usePagination from "../../hooks/usePagination";
+import { useCrudModal } from "../../hooks/useCrudModal";
+import { useListManager } from "../../hooks/useListManager";
 
 const UserList = () => {
-  // États locaux pour gérer les utilisateurs, l'état de chargement, les erreurs et les modals
-  const [users, setUsers] = useState([]); // Liste des utilisateurs
-  const [loading, setLoading] = useState(false); // État de chargement
-  const [error, setError] = useState(""); // État pour les erreurs
-  const [showModal, setShowModal] = useState(false); // État pour afficher ou cacher le modal de confirmation
-  const [selectedUser, setSelectedUser] = useState(null); // Utilisateur sélectionné pour suppression
-  const [filter, setFilter] = useState(""); // État pour le filtre
-  const [sortOption, setSortOption] = useState(""); // État pour l'option de tri
-  const [sortedUsers, setSortedUsers] = useState([]); // Liste des utilisateurs triés
-  const [searchQuery, setSearchQuery] = useState(""); // Requête de recherche pour filtrer les users
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Récupérer l'ID de l'utilisateur connecté à partir du sessionStorage
+  const { filter, setFilter, sortOption, setSortOption, processedList } =
+    useListManager({
+      dataList: users,
+      alphaField: "last_name",
+      dateField: "created_at",
+    });
+
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    per_page: 15,
+    total: 0,
+  });
+
+  const { showToast } = useToast();
+  const {
+    modal,
+    selectedIds,
+    setSelectedIds,
+    toggleSelect,
+    openDelete,
+    openBulkDelete,
+    close,
+  } = useCrudModal();
+
+  const {
+    currentPage,
+    goToPage,
+    reset: resetPagination,
+  } = usePagination(pagination.last_page || 1);
+
   const userInfo = JSON.parse(sessionStorage.getItem("user-info"));
-  const userId = userInfo ? userInfo.id : null; // ID de l'utilisateur connecté
+  const userId = userInfo ? userInfo.id : null;
 
-  // Récupérer la liste des utilisateurs lors du premier rendu
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    resetPagination();
+  };
+
+  const handleFilterChange = (newFilter) => {
+    setFilter(newFilter);
+    resetPagination();
+  };
+
   useEffect(() => {
+    const controller = new AbortController();
+    let isMounted = true;
+
     const fetchUsers = async () => {
-      setLoading(true); // On commence par définir l'état de chargement à true
-      setError(""); // Réinitialiser l'erreur
+      setLoading(true);
 
       try {
-        // Requête pour récupérer la liste des utilisateurs
         const response = await fetchWithToken(
-          `${process.env.REACT_APP_API_BASE_URL}/liste_user`
+          `${process.env.REACT_APP_API_BASE_URL}/liste_user?page=${currentPage}&role=${filter}&search=${encodeURIComponent(searchQuery)}`,
+          { signal: controller.signal },
         );
+
         if (!response.ok) {
           throw new Error("Erreur lors de la récupération des utilisateurs.");
         }
-        const data = await response.json(); // Convertir la réponse en JSON
-        setUsers(data.users); // Mettre à jour l'état users avec les données récupérées
+
+        const data = await response.json();
+        if (isMounted) {
+          setUsers(data.users || []);
+
+          if (data.pagination) {
+            setPagination(data.pagination);
+          }
+        }
       } catch (err) {
-        setError("Impossible de charger les données : " + err.message); // Si erreur, la définir dans l'état
+        if (err.name === "AbortError") return;
+        if (isMounted) {
+          showToast(
+            "Impossible de charger les données : " + err.message,
+            "danger",
+          );
+        }
       } finally {
-        setLoading(false); // Fin du chargement
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
-    fetchUsers(); // Appel de la fonction pour récupérer les utilisateurs
-  }, []); // Dépendances vides, donc ce code est exécuté au premier rendu seulement
+    fetchUsers();
 
-  // Ouvrir le modal de confirmation de suppression avec l'utilisateur sélectionné
-  const handleOpenModal = (user) => {
-    setSelectedUser(user); // On définit l'utilisateur sélectionné
-    setShowModal(true); // On affiche le modal
-  };
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+  }, [currentPage, filter, searchQuery, showToast]);
 
-  // Fermer le modal
-  const handleCloseModal = () => {
-    setShowModal(false); // Cacher le modal
-    setSelectedUser(null); // Réinitialiser l'utilisateur sélectionné
-  };
+  useEffect(() => {
+    resetPagination();
+  }, [filter, searchQuery, resetPagination]);
 
-  // Fonction pour supprimer l'utilisateur sélectionné
   const handleDelete = async () => {
-    if (!selectedUser) return; // Si aucun utilisateur sélectionné, on ne fait rien
+    const selectedUser = modal.data;
+    if (!selectedUser) return;
 
     try {
-      // Requête DELETE pour supprimer l'utilisateur
       const response = await fetchWithToken(
-        `${process.env.REACT_APP_API_BASE_URL}/delete_user/${selectedUser.id}?user_id=${userId}`,
+        `${process.env.REACT_APP_API_BASE_URL}/delete_user/${selectedUser.id}`,
         {
-          method: "DELETE", // Méthode de suppression
-          headers: { "Content-Type": "application/json" }, // Headers
-        }
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+        },
       );
 
-      const result = await response.json(); // Convertir la réponse en JSON
+      const result = await response.json();
 
-      // Si l'utilisateur a été supprimé
       if (result.status === "deleted") {
-        alert("Utilisateur supprimé !"); // Afficher un message de succès
-        setUsers(users.filter((user) => user.id !== selectedUser.id)); // Mettre à jour la liste des utilisateurs
+        showToast("Utilisateur supprimé !", "success");
+        setUsers((prev) => prev.filter((u) => u.id !== selectedUser.id));
       } else {
-        alert("Échec de la suppression."); // Si l'échec
+        showToast("Échec de la suppression.", "danger");
       }
     } catch (err) {
-      setError("Une erreur est survenue lors de la suppression."); // En cas d'erreur
+      showToast("Une erreur est survenue lors de la suppression.", "danger");
     } finally {
-      handleCloseModal(); // Fermer le modal après la suppression
+      close();
     }
   };
 
-  const filteredUsers = sortedUsers.filter(
-    (user) =>
-      user.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.last_name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleBulkDelete = async () => {
+    try {
+      const response = await fetchWithToken(
+        `${process.env.REACT_APP_API_BASE_URL}/delete_users_multiple`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids: selectedIds }),
+        },
+      );
 
-  function formatRole(role) {
-    if (!role) return "";
-    return role
-      .split("_") // coupe par "_"
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1)) // met en majuscule la première lettre
-      .join(" "); // re-colle avec des espaces
-  }
+      const result = await response.json();
 
-  const roleColors = {
-    super_admin: "bg-success",
-    gardien: "bg-warning",
-    secretaire: "bg-info",
-    chef_atelier: "bg-primary",
-    caisse: "bg-info",
+      if (result.status === "deleted") {
+        showToast("Utilisateurs supprimés !", "success");
+        setUsers((prev) => prev.filter((u) => !selectedIds.includes(u.id)));
+        setSelectedIds([]);
+      } else {
+        showToast("Échec de la suppression groupée.", "danger");
+      }
+    } catch (err) {
+      showToast(
+        "Une erreur est survenue lors de la suppression groupée.",
+        "danger",
+      );
+    } finally {
+      close();
+    }
   };
+
+  const toggleSelectAll = (e) => {
+    if (e.target.checked) {
+      const allSelectable = processedList
+        .filter((u) => u.id !== userId)
+        .map((u) => u.id);
+      setSelectedIds(allSelectable);
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const filterOptions = [
+    { value: "", label: "Tous les utilisateurs" },
+    { value: "admin", label: "Administrateur" },
+    { value: "caisse", label: "Caisse" },
+    { value: "gardien", label: "Gardien" },
+    { value: "reception", label: "Réception" },
+    { value: "caisse_outils", label: "Caisse Outils" },
+  ];
 
   return (
     <Layout>
       <div className="container mt-2">
-        {/* Affichage des erreurs s'il y en a */}
-        {error && <div className="alert alert-danger">{error}</div>}
+        <SearchBar
+          placeholder="Rechercher un utilisateur..."
+          value={searchQuery}
+          onSearch={handleSearch}
+          delay={300}
+        />
 
-        {/* Affichage du loader si on est en train de charger les données */}
+        <HeaderWithFilter
+          title="Utilisateurs"
+          link="/register"
+          linkText="Ajouter"
+          main={pagination.total}
+          filter={filter}
+          setFilter={handleFilterChange}
+          filterOptions={filterOptions}
+          sortOption={sortOption}
+          setSortOption={setSortOption}
+          hasAlphaSort={true}
+          hasDateSort={true}
+        />
+
         {loading ? (
           <div
             className="d-flex justify-content-center align-items-center"
-            style={{ height: "80vh" }} // Centrer Loader au milieu de l'écran
+            style={{ height: "50vh" }}
           >
             <Loader />
           </div>
         ) : (
           <>
-            {/* Barre de recherche */}
-            <SearchBar
-              placeholder="Rechercher un utilisateur..."
-              onSearch={(query) => setSearchQuery(query)}
-              delay={300}
+            {/* Barre d'action groupée si des utilisateurs sont sélectionnés */}
+            {selectedIds.length > 0 && (
+              <div className="alert alert-info d-flex justify-content-between align-items-center mb-3">
+                <span>
+                  <strong>{selectedIds.length}</strong> utilisateur(s)
+                  sélectionné(s)
+                </span>
+                <Button variant="danger" size="sm" onClick={openBulkDelete}>
+                  <i className="fas fa-trash me-2"></i>
+                  <span className="d-none d-md-inline-block">Supprimer</span>
+                </Button>
+              </div>
+            )}
+
+            <UserTable
+              users={processedList}
+              currentUserId={userId}
+              selectedUserIds={selectedIds}
+              onToggleSelectAll={toggleSelectAll}
+              onToggleSelectUser={toggleSelect}
+              onDelete={openDelete}
             />
-            {/* Affichage de l'en-tête avec filtre et le bouton pour ajouter un utilisateur */}
-            <HeaderWithFilter
-              title="Utilisateurs"
-              link="/register"
-              linkText="Ajouter"
-              main={users.length || null}
-              filter={filter}
-              setFilter={setFilter}
-              filterOptions={[
-                { value: "", label: "Tous les rôles" },
-                { value: "super_admin", label: "Super Admin" },
-                { value: "caisse", label: "Caisse" },
-                { value: "gardien", label: "Gardien" },
-                { value: "secretaire", label: "Secrétaire" },
-                { value: "chef_atelier", label: "Chef Atelier" },
-              ]}
-              sortOption={sortOption}
-              setSortOption={setSortOption}
-              dataList={users}
-              setSortedList={setSortedUsers}
-              alphaField="last_name"
-              dateField="created_at"
+
+            <Pagination
+              currentPage={currentPage}
+              totalPages={pagination.last_page || 1}
+              onPageChange={goToPage}
             />
-            {/* Affichage de la liste des utilisateurs dans un tableau */}
-            <Table hover responsive className="centered-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Nom</th>
-                  <th>Prénom</th>
-                  <th>Pseudo</th>
-                  <th>Rôle</th>
-                  <th>Opérations</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredUsers.length > 0 ? (
-                  // Si des utilisateurs existent, on les affiche dans des lignes de tableau
-                  filteredUsers
-                    .filter((user) => !filter || user.role === filter)
-                    .map((user) => (
-                      <tr key={user.id}>
-                        <td>{user.id}</td>
-                        <td>{user.last_name}</td>
-                        <td>{user.first_name}</td>
-                        <td>{user.pseudo}</td>
-                        {/* Affichage du rôle avec une couleur différente pour admin et staff */}
-                        <td className="text-center text-uppercase">
-                          <span
-                            className={`badge ${
-                              roleColors[user.role] || "bg-dark"
-                            } text-white`}
-                          >
-                            {formatRole(user.role)}
-                          </span>
-                        </td>
-                        <td className="table-operations">
-                          <div className="d-flex align-items-stretch justify-content-center gap-2 h-100">
-                            {/* Lien pour modifier l'utilisateur */}
-                            <Link
-                              to={`/update/user/${user.id}`}
-                              className="btn btn-warning btn-sm me-2"
-                            >
-                              Modifier
-                            </Link>
-                            {/* Bouton pour supprimer l'utilisateur (si ce n'est pas l'utilisateur connecté) */}
-                            {user.id !== userInfo.id && (
-                              <Button
-                                variant="danger"
-                                size="sm"
-                                onClick={() => handleOpenModal(user)} // Ouvre le modal pour la suppression
-                              >
-                                <i className="fas fa-trash"></i>
-                              </Button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                ) : (
-                  // Si aucun utilisateur n'est trouvé
-                  <tr>
-                    <td colSpan="6" className="text-center">
-                      Aucun utilisateur trouvé.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </Table>
           </>
         )}
       </div>
 
-      {/* Modal de confirmation pour la suppression d'un utilisateur */}
+      {/* Modal suppression unique */}
       <ConfirmPopup
-        show={showModal}
-        onClose={handleCloseModal}
+        show={modal.mode === "delete" && modal.variant === "single"}
+        onClose={close}
         onConfirm={handleDelete}
         title="Confirmer la suppression"
         body={
           <p>
             Voulez-vous vraiment supprimer l'utilisateur{" "}
-            <strong>{selectedUser?.last_name || "Inconnu"}</strong> ?
+            <strong>{modal.data?.last_name || "Inconnu"}</strong> ?
           </p>
         }
+      />
+
+      {/* Modal suppression groupée */}
+      <ConfirmPopup
+        show={modal.mode === "delete" && modal.variant === "multiple"}
+        onClose={close}
+        onConfirm={handleBulkDelete}
+        title="Confirmer la suppression groupée"
+        body={
+          <p>
+            Voulez-vous vraiment supprimer les{" "}
+            <strong>{selectedIds.length}</strong> utilisateurs sélectionnés ?
+          </p>
+        }
+        btnColor="danger"
       />
     </Layout>
   );

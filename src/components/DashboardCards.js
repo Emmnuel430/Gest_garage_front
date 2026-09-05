@@ -1,5 +1,12 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Table } from "react-bootstrap";
+import {
+  DashboardCard,
+  EmptyState,
+  renderChronoItem,
+} from "./DashboardElements";
+import { formatTableName } from "../utils/helpers";
+import { useEffect, useState } from "react";
 
 export default function DashboardCards({
   userInfo,
@@ -11,178 +18,143 @@ export default function DashboardCards({
   getActionLabel,
 }) {
   const navigate = useNavigate();
+  const [, setCurrentTime] = useState(Date.now());
 
-  const cards = [
-    {
-      key: "factures",
-      visible: ["super_admin", "caisse"].includes(userInfo?.role),
-      link_visibility: facturesImpayees.length > 0,
-      title: "Factures impayées",
-      link:
-        (["super_admin", "caisse"].includes(userInfo?.role) && "/factures") ||
-        null,
-      content: (
-        <>
+  // Actualiser l'heure locale toutes les secondes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 59 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const isAdminOrCaisse = ["admin", "caisse"].includes(userInfo?.role);
+
+  return (
+    <div className="row g-4">
+      {/* FACTURES */}
+      {isAdminOrCaisse && (
+        <DashboardCard
+          icon="bi bi-receipt"
+          iconClass="bg-danger-subtle text-danger"
+          title="Factures impayées"
+          count={facturesImpayees.length}
+          link={facturesImpayees.length > 0 ? "/factures" : null}
+        >
           {facturesImpayees.length > 0 ? (
-            facturesImpayees
-              .slice(0, 3) // Limite à 3 factures
-              .map((facture, index) => (
+            <div className="d-flex flex-column gap-2">
+              {facturesImpayees.slice(0, 3).map((facture, index) => (
                 <div
                   key={index}
-                  className={`d-flex align-items-center border shadow-sm rounded p-3 mb-2 
-                          border-danger bg-danger-subtle
-                      `}
-                  style={{
-                    cursor: "pointer",
-                  }}
-                  onClick={() => {
-                    navigate(`/factures`);
-                  }}
+                  onClick={() => navigate("/factures")}
+                  className="p-3 rounded-3 bg-danger-subtle border border-danger-subtle dashboard-item"
+                  style={{ cursor: "pointer" }}
                 >
-                  <i
-                    className={`bi
-                              bi-exclamation-triangle-fill text-danger
-                          `}
-                    style={{ fontSize: "2rem" }}
-                  ></i>
-                  <div className="w-100 ms-3">
-                    <div className="d-flex w-100 justify-content-between">
-                      <h6 className={`mb-0 fw-bold text-danger`}>
-                        {userInfo?.role === "super_admin" ||
-                        userInfo?.role === "caisse" ? (
-                          <>
-                            La facture du véhicule{" "}
-                            <strong>
-                              {facture.reception?.vehicule?.immatriculation}
-                            </strong>{" "}
-                            n'a pas encore été réglée !
-                          </>
-                        ) : (
-                          <>
-                            Vous n'avez pas les droits pour voir les factures.
-                          </>
-                        )}
-                      </h6>
-                      <small className="text-muted">
-                        {formatDateRelative(facture.date_generation)}
-                      </small>
+                  <div className="d-flex align-items-center gap-3">
+                    <div className="text-danger">
+                      <i className="bi bi-exclamation-circle-fill fs-5" />
                     </div>
+
+                    <div className="flex-grow-1 min-w-0">
+                      <div className="fw-semibold text-truncate">
+                        {facture.reception?.vehicule?.immatriculation ||
+                          "Véhicule inconnu"}
+                      </div>
+
+                      <small className="text-muted">Facture impayée</small>
+                    </div>
+
+                    <i className="bi bi-chevron-right text-danger" />
                   </div>
                 </div>
-              ))
-          ) : (
-            <div className="text-center text-muted h-100 d-flex align-items-center justify-content-center">
-              Tout baigne pour l'instant. Personne ne doit.
+              ))}
             </div>
+          ) : (
+            <EmptyState
+              icon="bi bi-check-circle"
+              message="Aucune facture impayée"
+              type="success"
+            />
           )}
-        </>
-      ),
-    },
-    {
-      key: "logs",
-      visible: userInfo?.role === "super_admin",
-      link_visibility: logs.length > 0,
-      title: "Logs",
-      link: "/logs",
-      content: (
-        <div className="d-flex flex-column align-items-center">
-          {userInfo?.role === "super_admin" ? (
-            logs.length > 0 ? (
-              <>
-                <Table hover className="centered-table w-100">
-                  <tbody>
-                    {logs.map((log, index) => (
+        </DashboardCard>
+      )}
+
+      {/* LOGS */}
+      {userInfo?.role === "admin" && (
+        <DashboardCard
+          icon="fas fa-history"
+          iconClass="bg-primary-subtle text-primary"
+          title="Activité récente"
+          count={logs.length}
+          link={logs.length > 0 ? "/logs" : null}
+        >
+          {logs.length > 0 ? (
+            <div className="table-responsive">
+              <Table hover className="mb-0 align-middle">
+                <tbody>
+                  {logs.slice(0, 5).map((log, index) => {
+                    const actionColor = getActionColor(log.action);
+                    return (
                       <tr key={index}>
-                        <td>
+                        <td className="border-0 px-0">
                           <span
-                            className={`${getActionColor(
-                              log.action
-                            )} text-uppercase text-white rounded-pill px-2 py-1`}
+                            className={`badge bg-${actionColor}-subtle text-${actionColor} border border-${actionColor}-subtle text-uppercase rounded-pill px-2 py-1`}
+                            style={{ fontSize: "0.7rem" }}
                           >
                             {getActionLabel(log.action)}
                           </span>
                         </td>
-                        <td className="text-capitalize">
-                          {log.table_concernee}
+
+                        <td className="border-0 text-capitalize small">
+                          {formatTableName(log.table_concernee)}
                         </td>
-                        <td>{formatDateRelative(log.created_at)}</td>
+
+                        <td className="border-0 text-end text-muted small">
+                          {formatDateRelative(log.created_at)}
+                        </td>
                       </tr>
-                    ))}
-                  </tbody>
-                </Table>
-              </>
-            ) : (
-              <div className="text-center text-muted h-100 d-flex align-items-center justify-content-center">
-                Aucun log disponible.
-              </div>
-            )
+                    );
+                  })}
+                </tbody>
+              </Table>
+            </div>
           ) : (
-            <div className="text-center text-danger h-100 d-flex align-items-center justify-content-center">
-              Vous n'avez pas les droits pour voir les logs.
-            </div>
+            <EmptyState
+              icon="bi bi-activity"
+              message="Aucune activité récente"
+            />
           )}
-        </div>
-      ),
-    },
-    {
-      key: "chronos",
-      visible: true,
-      link_visibility: chronosEnCours.length > 0,
-      title: "Chronos en cours",
-      link: userInfo?.role !== "gardien" ? "/chronos" : null,
-      content:
-        chronosEnCours.length > 0 ? (
-          chronosEnCours.map((chrono, index) => (
-            <div
-              key={index}
-              className="d-flex align-items-center border-bottom w-100 pb-1 mb-2"
-            >
-              <i
-                className={`fa fa-clock text-warning`}
-                style={{ fontSize: "2rem" }}
-              ></i>
-              <div className="w-100 ms-3">
-                <div className="w-100 d-flex align-items-center justify-content-between">
-                  <p className="mb-0">
-                    <span>Debut : </span>
-                    {formatDateRelative(chrono.start_time)}
-                  </p>
-                </div>
+        </DashboardCard>
+      )}
+
+      {/* CHRONOS */}
+      <DashboardCard
+        icon="bi bi-stopwatch"
+        iconClass="bg-warning-subtle text-warning"
+        title="Chronos"
+        count={chronosEnCours.length}
+        link={
+          chronosEnCours.length > 0 && userInfo?.role !== "gardien"
+            ? "/chronos"
+            : null
+        }
+      >
+        {chronosEnCours.length > 0 ? (
+          <div className="d-flex flex-column gap-2">
+            {chronosEnCours.length === 0 ? (
+              <div className="p-3 text-center text-muted small bg-light rounded-3">
+                Aucun chrono actif pour le moment.
               </div>
-            </div>
-          ))
+            ) : (
+              chronosEnCours
+                .slice(0, 3)
+                .map((chrono) => renderChronoItem(chrono))
+            )}
+          </div>
         ) : (
-          <div className="text-center text-muted h-100 d-flex align-items-center justify-content-center">
-            Aucun chrono en cours.
-          </div>
-        ),
-    },
-  ];
-
-  const visibleCards = cards.filter((c) => c.visible);
-  const cardCount = visibleCards.length;
-
-  const getColClass = () => {
-    if (cardCount === 1) return "col-12 col-md-6 d-flex justify-content-center";
-    if (cardCount === 2) return "col-12 col-md-6 col-xl-5";
-    return "col-12 col-md-6 col-xl-4";
-  };
-
-  return (
-    <div className="row g-4 justify-content-center">
-      {visibleCards.map((card) => (
-        <div key={card.key} className={getColClass()}>
-          <div className="h-100 bg-body rounded border p-4">
-            <div className="d-flex align-items-center justify-content-between mb-3">
-              <h6 className="mb-0">{card.title}</h6>
-              {card.link && card.link_visibility && (
-                <Link to={card.link}>Voir</Link>
-              )}
-            </div>
-            <div className="mb-2">{card.content}</div>
-          </div>
-        </div>
-      ))}
+          <EmptyState icon="bi bi-stopwatch" message="Aucun chrono en cours" />
+        )}
+      </DashboardCard>
     </div>
   );
 }

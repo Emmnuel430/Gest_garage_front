@@ -30,7 +30,7 @@ const Protected = ({ Cmp, adminOnly = false, roles = [] }) => {
               Accept: "application/json",
               Authorization: `Bearer ${token}`, // Utilisation du token
             },
-          }
+          },
         );
 
         if (!response.ok) throw new Error("Unauthorized");
@@ -46,7 +46,7 @@ const Protected = ({ Cmp, adminOnly = false, roles = [] }) => {
         }
 
         // Vérification si adminOnly est activé
-        if (adminOnly && currentUser.role !== "super_admin") {
+        if (adminOnly && currentUser.role !== "admin") {
           navigate("/access-denied");
           return;
         }

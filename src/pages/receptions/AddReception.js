@@ -1,61 +1,75 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../../components/Layout/Layout";
 import Back from "../../components/Layout/Back";
 import Select from "react-select";
 import ConfirmPopup from "../../components/Layout/ConfirmPopup";
-import ToastMessage from "../../components/Layout/ToastMessage";
+import { useToast } from "../../contexts/ToastContext";
 import { fetchWithToken } from "../../utils/fetchWithToken";
+import { useTheme } from "../../contexts/ThemeContext";
+import { getBootstrapSelectTheme } from "../../utils/helpers";
 
 const AddReception = () => {
+  const { isDarkMode } = useTheme();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [vehicule, setVehicule] = useState({
     immatriculation: "",
     marque: "",
     modele: "",
-    // client_nom: "",
-    // client_tel: "",
     mecanicien_id: null,
   });
   const [mecaniciens, setMecaniciens] = useState([]);
+  // const [activeTools, setActiveTools] = useState([]);
 
-  const [motif_visite, setMotifVisite] = useState("");
+  const [motifsList, setMotifsList] = useState([]);
+  const [motifInput, setMotifInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
 
-  useEffect(() => {
-    fetchMecaniciens();
-  }, []);
-
-  const fetchMecaniciens = async () => {
-    try {
-      const response = await fetchWithToken(
-        `${process.env.REACT_APP_API_BASE_URL}/liste_mecaniciens`
-      );
-      const data = await response.json();
-      if (response.ok) {
-        setMecaniciens(data.mecaniciens);
-      } else {
-        setError(data.error || "Une erreur est survenue.");
-      }
-    } catch (error) {
-      setError("Une erreur inattendue s'est produite.");
+  const handleAddMotif = (e) => {
+    if (e.key === "Enter" && motifInput.trim() !== "") {
+      e.preventDefault();
+      setMotifsList((prev) => [...prev, motifInput.trim()]);
+      setMotifInput("");
     }
   };
+
+  const removeMotif = (index) => {
+    setMotifsList((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  useEffect(() => {
+    const fetchMecaniciens = async () => {
+      try {
+        const response = await fetchWithToken(
+          `${process.env.REACT_APP_API_BASE_URL}/liste_mecaniciens`,
+        );
+        const data = await response.json();
+        if (response.ok) {
+          setMecaniciens(data.mecaniciens);
+        } else {
+          showToast(data.error || "Une erreur est survenue.", "danger");
+        }
+      } catch (error) {
+        showToast("Une erreur inattendue s'est produite.", "danger");
+      }
+    };
+
+    fetchMecaniciens();
+  }, [showToast]);
 
   const handleShowModal = () => {
     if (
       !vehicule.immatriculation ||
       !vehicule.marque ||
       !vehicule.modele ||
-      !motif_visite
+      motifsList.length === 0
     ) {
-      setError("Tous les champs obligatoires doivent être remplis.");
+      showToast("Tous les champs obligatoires doivent être remplis.", "danger");
       return;
     }
-    setError("");
     setShowModal(true);
   };
 
@@ -64,19 +78,9 @@ const AddReception = () => {
   const addReception = async () => {
     setLoading(true);
     try {
-      const userInfo = JSON.parse(sessionStorage.getItem("user-info"));
-      const gardien_id = userInfo ? userInfo.id : null;
-
-      if (!gardien_id) {
-        alert("Utilisateur non authentifié. Veuillez vous connecter.");
-        navigate("/");
-        return;
-      }
-
       const payload = {
         ...vehicule,
-        motif_visite,
-        gardien_id,
+        motif_visite: motifsList.join(", "),
       };
 
       const response = await fetchWithToken(
@@ -88,62 +92,37 @@ const AddReception = () => {
             Accept: "application/json",
           },
           body: JSON.stringify(payload),
-        }
+        },
       );
 
       const result = await response.json();
 
       if (!response.ok) {
-        setError(result.error || "Une erreur est survenue.");
+        showToast(result.error || "Une erreur est survenue.", "danger");
         setLoading(false);
         return;
       }
 
-      alert("Réception enregistrée avec succès.");
+      showToast("Réception enregistrée avec succès.", "success");
       navigate("/receptions");
     } catch (e) {
-      setError("Une erreur inattendue s'est produite.");
+      showToast("Une erreur inattendue s'est produite.", "danger");
     } finally {
       setLoading(false);
       setShowModal(false);
     }
   };
 
-  const options = mecaniciens.map((mecanicien) => ({
-    value: mecanicien.id,
-    label: `${mecanicien.nom} ${mecanicien.prenom}`,
-  }));
+  const mecanicienOptions = useMemo(
+    () =>
+      mecaniciens.map((mecanicien) => ({
+        value: mecanicien.id,
+        label: `${mecanicien.nom} ${mecanicien.prenom}`,
+      })),
+    [mecaniciens],
+  );
 
-  // Fonction pour récupérer le thème Bootstrap depuis l'attribut HTML
-  const getBootstrapTheme = () => {
-    return document.body.getAttribute("data-bs-theme") === "dark";
-  };
-  const [isDarkMode, setIsDarkMode] = useState(getBootstrapTheme());
-
-  // Détecte le changement de thème Bootstrap (si data-bs-theme change dynamiquement)
-  useEffect(() => {
-    const observer = new MutationObserver(() => {
-      setIsDarkMode(getBootstrapTheme());
-    });
-
-    observer.observe(document.body, {
-      attributes: true,
-      attributeFilter: ["data-bs-theme"],
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
-  const customTheme = (theme) => ({
-    ...theme,
-    colors: {
-      ...theme.colors,
-      neutral0: isDarkMode ? "#212529" : "#fff", // fond du select
-      neutral80: isDarkMode ? "#f8f9fa" : "#212529", // texte
-      primary25: isDarkMode ? "#343a40" : "#e9ecef", // survol
-      primary: "#0d6efd", // couleur principale Bootstrap
-    },
-  });
+  const customTheme = getBootstrapSelectTheme(isDarkMode);
 
   return (
     <Layout>
@@ -151,8 +130,6 @@ const AddReception = () => {
       <div className="col-sm-6 offset-sm-3 mt-5">
         <h1>Ajout d'une Réception</h1>
         <br />
-
-        {error && <ToastMessage message={error} onClose={() => setError("")} />}
 
         <div>
           <h4>Infos du véhicule</h4>
@@ -189,61 +166,78 @@ const AddReception = () => {
         />
         <br />
 
-        {/* <label className="form-label">Nom du client</label>
-        <input
-          type="text"
-          className="form-control"
-          placeholder="Ex: John Doe"
-          value={vehicule.client_nom}
-          onChange={(e) =>
-            setVehicule({ ...vehicule, client_nom: e.target.value })
-          }
-        />
-        <br />
-
-        <label className="form-label">Téléphone du client</label>
-        <input
-          type="number"
-          className="form-control"
-          placeholder="Ex: 0123456789"
-          value={vehicule.client_tel}
-          onChange={(e) =>
-            setVehicule({ ...vehicule, client_tel: e.target.value })
-          }
-        />
-        <br /> */}
-
         <label className="form-label">Mecanicien *</label>
         <Select
           className="bg-body"
           classNamePrefix="select"
-          options={options}
+          options={mecanicienOptions}
           value={
-            options.find((opt) => opt.value === vehicule.mecanicien_id) || null
+            mecanicienOptions.find(
+              (opt) => opt.value === vehicule.mecanicien_id,
+            ) || null
           }
-          onChange={(selectedOption) =>
+          onChange={(selectedOption) => {
             setVehicule({
               ...vehicule,
-              mecanicien_id: selectedOption?.value || "",
-            })
-          }
+              mecanicien_id: selectedOption?.value || null,
+            });
+            // checkActiveTools(selectedOption?.value);
+          }}
           placeholder="Sélectionner un mécanicien"
           isClearable
           isSearchable
           theme={customTheme} // Appliquer le thème personnalisé
         />
-        <br />
+        {/* {activeTools.length > 0 && (
+          <>
+            <div className="alert alert-warning mt-2 mb-0">
+              <i className="fas fa-exclamation-triangle me-2"></i>
+              Ce mécanicien utilise l'outil{" "}
+              <strong>
+                {activeTools.map((t) => t.outil?.libelle || "Outil").join(", ")}
+              </strong>{" "}
+              sur une autre réparation en cours. Veuillez déclarer cet(ces)
+              outil(s) comme partagé(s) dans la page "Prêt / Restitution" après
+              l'enregistrement !
+            </div>
+            <br />
 
-        <span>------------------------------------------------------</span>
+            <hr />
+          </>
+        )} */}
         <br />
-        <label className="form-label">Motif de la visite *</label>
+        <label className="form-label">
+          Motif(s) de la visite * (Entrée pour ajouter)
+        </label>
         <input
           type="text"
           className="form-control"
-          placeholder="Ex: Révision"
-          value={motif_visite}
-          onChange={(e) => setMotifVisite(e.target.value)}
+          placeholder="Ex: Révision, Vidange..."
+          value={motifInput}
+          onChange={(e) => setMotifInput(e.target.value)}
+          onKeyDown={handleAddMotif}
         />
+        <div className="mt-2 d-flex flex-wrap gap-2">
+          {motifsList.map((motif, index) => (
+            <span
+              key={index}
+              className="badge bg-secondary d-flex align-items-center"
+            >
+              {motif}
+              <button
+                type="button"
+                className="btn-close btn-close-white ms-2"
+                style={{ fontSize: "0.5rem" }}
+                onClick={() => removeMotif(index)}
+              ></button>
+            </span>
+          ))}
+        </div>
+        {motifsList.length === 0 && (
+          <small className="text-muted">
+            Aucun motif ajouté. Appuyez sur Entrée pour valider chaque motif.
+          </small>
+        )}
         <br />
 
         <button
@@ -254,9 +248,9 @@ const AddReception = () => {
             !vehicule.marque ||
             !vehicule.modele ||
             !vehicule.mecanicien_id ||
-            !motif_visite
+            motifsList.length === 0
           }
-          className="btn btn-primary w-100"
+          className="btn btn-primary w-100 mt-3"
         >
           {loading ? (
             <span>
@@ -282,13 +276,7 @@ const AddReception = () => {
             <br />
             <strong>Modèle :</strong> {vehicule.modele || "-"}
             <br />
-            {/* {vehicule.client_nom && vehicule.client_tel && (
-              <>
-                <strong>Client :</strong> {vehicule.client_nom} (
-                {vehicule.client_tel})<br />
-              </>
-            )} */}
-            <strong>Motif :</strong> {motif_visite}
+            <strong>Motif(s) :</strong> {motifsList.join(", ")}
           </div>
         }
       />

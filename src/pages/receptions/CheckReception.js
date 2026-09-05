@@ -1,91 +1,130 @@
 import React, { useState, useEffect } from "react";
-import { Table, Button } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Table, Button, Modal } from "react-bootstrap";
 import Layout from "../../components/Layout/Layout";
 import HeaderWithFilter from "../../components/Layout/HeaderWithFilter";
 import Loader from "../../components/Layout/Loader";
 import ConfirmPopup from "../../components/Layout/ConfirmPopup";
+import SearchBar from "../../components/Layout/SearchBar";
+import Pagination from "../../components/Layout/Pagination";
+import BadgeVehicule from "../../components/others/BadgeVehicule";
 import Check from "./Check";
-import { Modal } from "react-bootstrap";
-import { format } from "date-fns";
+import ReceptionDetailsModalContent from "../../components/receptions/ReceptionDetailsModalContent";
+import ReceptionTableRow from "../../components/receptions/ReceptionTableRow";
 import { fetchWithToken } from "../../utils/fetchWithToken";
+import { useToast } from "../../contexts/ToastContext";
+import {
+  filterReceptionsOptions,
+  STATUT_COLOR_CONFIG,
+} from "../../utils/helpers";
+
+import usePagination from "../../hooks/usePagination";
+import { useCrudModal } from "../../hooks/useCrudModal";
+import { useListManager } from "../../hooks/useListManager";
+
+const resolveStatusConfig = (status) => {
+  if (STATUT_COLOR_CONFIG[status]) {
+    return STATUT_COLOR_CONFIG[status];
+  }
+};
 
 const CheckReception = () => {
   const [receptions, setReceptions] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [showModal, setShowModal] = useState(false);
-  const [showDetailsModal, setShowDetailsModal] = useState(false); // Contrôle de l'affichage du modal de détails
-  const [selectedReception, setSelectedReception] = useState(null);
-  const [sortOption, setSortOption] = useState("");
-  const [sortedReceptions, setSortedReceptions] = useState([]);
-  const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [receptionToUpdate, setReceptionToUpdate] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [updateLoading, setUpdateLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const { filter, setFilter, sortOption, setSortOption, processedList } =
+    useListManager({
+      dataList: receptions,
+      dateField: "created_at",
+    });
+
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    per_page: 15,
+    total: 0,
+  });
+
+  const { modal, open, openDelete, openDetails, close } = useCrudModal();
+  const { showToast } = useToast();
+
+  const {
+    currentPage,
+    goToPage,
+    reset: resetPagination,
+  } = usePagination(pagination.last_page || 1);
 
   const userInfo = JSON.parse(sessionStorage.getItem("user-info"));
-  const userId = userInfo ? userInfo.id : null;
   const userRole = userInfo ? userInfo.role : null;
 
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    resetPagination();
+  };
+
+  const handleFilterChange = (newFilter) => {
+    setFilter(newFilter);
+    resetPagination();
+  };
+
+  // fetchReceptions est accessible pour le update handler
+  const fetchReceptionsRef = React.useRef(null);
+
   useEffect(() => {
+    const controller = new AbortController();
+    let isMounted = true;
+
     const fetchReceptions = async () => {
       setLoading(true);
-      setError("");
 
       try {
         const response = await fetchWithToken(
-          `${process.env.REACT_APP_API_BASE_URL}/liste_receptions`
+          `${process.env.REACT_APP_API_BASE_URL}/liste_receptions?page=${currentPage}&statut=${filter}&search=${encodeURIComponent(searchQuery)}`,
+          { signal: controller.signal },
         );
         if (!response.ok) {
           throw new Error("Erreur lors de la récupération des réceptions.");
         }
+
         const data = await response.json();
-        setReceptions(data.receptions);
-        setSortedReceptions(data.receptions);
+        if (isMounted) {
+          setReceptions(data.receptions || []);
+
+          if (data.pagination) {
+            setPagination(data.pagination);
+          }
+        }
       } catch (err) {
-        setError("Impossible de charger les données : " + err.message);
+        if (err.name === "AbortError") return;
+        if (isMounted) {
+          showToast(
+            "Impossible de charger les données : " + err.message,
+            "danger",
+          );
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
+    fetchReceptionsRef.current = fetchReceptions;
     fetchReceptions();
-  }, []);
 
-  // Fonction pour ouvrir le modal de détails d'une réception
-  const handleShowDetails = (reception) => {
-    setSelectedReception(reception);
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+  }, [currentPage, filter, searchQuery, showToast]);
 
-    setShowDetailsModal(true);
-  };
-
-  // Fonction pour fermer le modal de détails
-  const handleCloseDetailsModal = () => {
-    setShowDetailsModal(false);
-    setSelectedReception(null);
-  };
-
-  const handleOpenModal = (reception) => {
-    setSelectedReception(reception);
-    setShowModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setSelectedReception(null);
-  };
-
-  // -------------------
-  const handleOpenUpdateModal = (reception) => {
-    setReceptionToUpdate(reception);
-    setShowUpdateModal(true);
-  };
-
-  const handleCloseUpdateModal = () => {
-    setShowUpdateModal(false);
-    setReceptionToUpdate(null);
-  };
+  useEffect(() => {
+    resetPagination();
+  }, [filter, searchQuery, resetPagination]);
 
   const handleUpdateReception = async (updatedReception) => {
+    setUpdateLoading(true);
     try {
       const response = await fetchWithToken(
         `${process.env.REACT_APP_API_BASE_URL}/check/${updatedReception.id}`,
@@ -94,367 +133,197 @@ const CheckReception = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            ...updatedReception,
-            user_id: userId,
-          }),
-        }
+          body: JSON.stringify(updatedReception),
+        },
       );
 
-      if (!response.ok) throw new Error("Échec de la mise à jour");
+      if (!response.ok) {
+        throw new Error("Échec de la mise à jour");
+      }
 
-      alert("Réception mise à jour avec succès.");
-      handleCloseUpdateModal();
-      // Attendre ≈1 seconde puis recharger la page
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
+      showToast("Réception mise à jour avec succès.", "info");
+      close();
+      if (fetchReceptionsRef.current) await fetchReceptionsRef.current();
     } catch (error) {
-      alert("Erreur lors de la mise à jour.");
+      showToast("Erreur lors de la mise à jour.", "danger");
+    } finally {
+      setUpdateLoading(false);
     }
   };
 
   const handleDelete = async () => {
+    const selectedReception = modal.data;
     if (!selectedReception) return;
 
     try {
       const response = await fetchWithToken(
-        `${process.env.REACT_APP_API_BASE_URL}/delete_reception/${selectedReception.id}?user_id=${userId}`,
+        `${process.env.REACT_APP_API_BASE_URL}/delete_reception/${selectedReception.id}`,
         {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
 
       const result = await response.json();
 
       if (result.status === "deleted") {
-        alert("Réception supprimée !");
-        setReceptions(receptions.filter((r) => r.id !== selectedReception.id));
-        setSortedReceptions(
-          sortedReceptions.filter((r) => r.id !== selectedReception.id)
+        showToast("Réception supprimée !", "success");
+        setReceptions((prev) =>
+          prev.filter((r) => r.id !== selectedReception.id),
         );
       } else {
-        alert("Échec de la suppression.");
+        showToast("Échec de la suppression.", "danger");
       }
     } catch (err) {
-      setError("Une erreur est survenue lors de la suppression.");
+      showToast("Une erreur est survenue lors de la suppression.", "danger");
     } finally {
-      handleCloseModal();
+      close();
     }
   };
-
-  const statutColors = {
-    attente: "bg-secondary",
-    validee: "bg-primary",
-    termine: "bg-success",
-  };
-
-  const statutLabel = {
-    attente: (
-      <>
-        En attente <br /> de validation
-      </>
-    ),
-    validee: "Réception validée",
-    termine: "Terminé",
-  };
-
-  const ordreStatut = ["attente", "validee", "termine"];
 
   return (
     <Layout>
       <div className="container mt-2">
-        {error && <div className="alert alert-danger">{error}</div>}
+        <SearchBar
+          placeholder="Rechercher une validation par immatriculation..."
+          value={searchQuery}
+          onSearch={handleSearch}
+          delay={300}
+        />
+
+        <HeaderWithFilter
+          title2="Validations"
+          main={pagination.total}
+          filter={filter}
+          setFilter={handleFilterChange}
+          filterOptions={filterReceptionsOptions}
+          sortOption={sortOption}
+          setSortOption={setSortOption}
+          hasAlphaSort={false}
+          hasDateSort={true}
+        />
 
         {loading ? (
           <div
             className="d-flex justify-content-center align-items-center"
-            style={{ height: "80vh" }}
+            style={{ height: "50vh" }}
           >
             <Loader />
           </div>
         ) : (
           <>
-            <HeaderWithFilter
-              title2="Validations"
-              main={receptions.length || null}
-              sortOption={sortOption}
-              setSortOption={setSortOption}
-              dataList={receptions}
-              setSortedList={setSortedReceptions}
-              dateField="created_at"
-            />
-
-            <Table hover responsive className="centered-table">
-              <thead>
+            <Table hover responsive align="middle" className="mb-0 fs-6">
+              <thead className="table-body rounded-3 text-muted small text-uppercase tracking-wider">
                 <tr>
-                  <th>ID</th>
-                  <th>Fait par</th>
-                  <th>Immat.</th>
-                  <th>Marque</th>
-                  <th>Date d’arrivée</th>
-                  <th>Statut</th>
-                  <th>Actions</th>
+                  <th scope="col" className="ps-3 py-3">
+                    ID
+                  </th>
+                  <th scope="col" className="py-3">
+                    Agent
+                  </th>
+                  <th scope="col" className="py-3">
+                    Véhicule
+                  </th>
+                  <th scope="col" className="py-3">
+                    Date d'arrivée
+                  </th>
+                  <th scope="col" className="py-3 text-center">
+                    Statut
+                  </th>
+                  <th scope="col" className="py-3 text-end pe-3">
+                    Actions
+                  </th>
                 </tr>
               </thead>
+
               <tbody>
-                {sortedReceptions.length > 0 ? (
-                  sortedReceptions
-                    .sort(
-                      (a, b) => new Date(b.created_at) - new Date(a.created_at)
-                    )
-                    .sort((a, b) => {
-                      const statutA = a.statut || "";
-                      const statutB = b.statut || "";
-                      return (
-                        ordreStatut.indexOf(statutA) -
-                        ordreStatut.indexOf(statutB)
-                      );
-                    })
-                    .map((reception) => {
-                      // Désactivé seulement si l’utilisateur n’est pas super_admin ET statut est "termine"
-                      const isDisabled =
-                        userRole !== "super_admin" &&
-                        reception.statut === "termine";
-
-                      return (
-                        <tr
-                          key={reception.id}
-                          style={isDisabled ? { opacity: 0.5 } : {}}
-                        >
-                          <td>{reception.id}</td>
-                          <td>
-                            {reception.gardien?.first_name}{" "}
-                            {reception.gardien?.last_name}
-                          </td>
-                          <td>{reception.vehicule?.immatriculation || "—"}</td>
-                          <td>{reception.vehicule?.marque || "—"}</td>
-                          <td>{reception.date_arrivee}</td>
-                          <td className="text-center text-uppercase">
-                            <span
-                              className={`badge ${
-                                statutColors[reception.statut] || "bg-dark"
-                              } text-white`}
-                            >
-                              {statutLabel[reception.statut]}
-                            </span>
-                          </td>
-                          <td className="table-operations">
-                            <div className="d-flex align-items-stretch justify-content-center gap-2 h-100">
-                              <button
-                                onClick={() => handleShowDetails(reception)}
-                                className="btn btn-info btn-sm me-2"
-                                disabled={isDisabled}
-                              >
-                                <i className="fas fa-eye"></i>
-                              </button>
-                              <Button
-                                variant="warning"
-                                size="sm"
-                                disabled={isDisabled}
-                                onClick={() => handleOpenUpdateModal(reception)}
-                                className=" me-2"
-                              >
-                                <i className="fas fa-pencil-alt"></i>
-                              </Button>
-
-                              <Button
-                                variant="danger"
-                                size="sm"
-                                onClick={() => handleOpenModal(reception)}
-                                disabled={isDisabled}
-                              >
-                                <i className="fas fa-trash"></i>
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })
-                ) : (
+                {processedList.length === 0 ? (
                   <tr>
-                    <td colSpan="7" className="text-center">
+                    <td colSpan="6" className="text-center py-5 text-muted">
+                      <i className="fa fa-inbox fa-2x mb-2 d-block text-black-50"></i>
                       Aucune réception en attente trouvée.
                     </td>
                   </tr>
+                ) : (
+                  processedList.map((reception) => {
+                    const isDisabled =
+                      userRole !== "admin" && reception.statut === "termine";
+
+                    return (
+                      <ReceptionTableRow
+                        key={reception.id}
+                        reception={reception}
+                        userRole={userRole}
+                        onShowDetails={openDetails}
+                        onDelete={openDelete}
+                        onUpdate={
+                          reception.statut === "attente"
+                            ? (r) => open("update", r)
+                            : null
+                        }
+                        isDisabled={isDisabled}
+                        showDeleteButton={true}
+                        showUpdateButton={reception.statut === "attente"}
+                        statusResolver={(status) =>
+                          STATUT_COLOR_CONFIG[status] || {
+                            label: status,
+                            bg: "body",
+                          }
+                        }
+                      />
+                    );
+                  })
                 )}
               </tbody>
             </Table>
+
+            <Pagination
+              currentPage={currentPage}
+              totalPages={pagination.last_page || 1}
+              onPageChange={goToPage}
+            />
           </>
         )}
       </div>
 
-      {/* Modal de détails de la réception */}
-      <Modal
-        show={showDetailsModal}
-        onHide={handleCloseDetailsModal}
-        centered
-        size="lg"
-      >
+      <Modal show={modal.mode === "details"} onHide={close} size="lg" centered>
         <Modal.Header closeButton>
           <Modal.Title>Détails de la Réception</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {selectedReception && (
-            <div className="container">
-              <div className="row mb-2">
-                <div className="col-6 fw-bold">ID :</div>
-                <div className="col-6">REC-{selectedReception.id}</div>
-              </div>
-              <div className="row mb-2">
-                <div className="col-6 fw-bold">Gardien :</div>
-                <div className="col-6">
-                  {selectedReception.gardien?.first_name}{" "}
-                  {selectedReception.gardien?.last_name}
-                </div>
-              </div>
-              <span>-----------</span>
-              <div className="row mb-2">
-                <div className="col-6 fw-bold">Immatriculation :</div>
-                <div className="col-6">
-                  {selectedReception.vehicule?.immatriculation || "—"}
-                </div>
-              </div>
-              <div className="row mb-2">
-                <div className="col-6 fw-bold">Marque :</div>
-                <div className="col-6">
-                  {selectedReception.vehicule?.marque || "—"}
-                </div>
-              </div>
-              <div className="row mb-2">
-                <div className="col-6 fw-bold">Modèle :</div>
-                <div className="col-6">
-                  {selectedReception.vehicule?.modele || "—"}
-                </div>
-              </div>
-              <div className="row mb-2">
-                <div className="col-6 fw-bold">Mecanicien :</div>
-                <div className="col-6">
-                  {selectedReception.vehicule?.mecanicien?.nom || "—"}
-                </div>
-              </div>
-              <div className="row mb-2">
-                <div className="col-6 fw-bold">Date d’arrivée :</div>
-                <div className="col-6">
-                  {format(
-                    new Date(selectedReception.date_arrivee),
-                    "dd/MM/yyyy HH:mm:ss"
-                  )}
-                </div>
-              </div>
-              <div className="row mb-2">
-                <div className="col-6 fw-bold">Motif de la visite :</div>
-                <div className="col-6">
-                  {selectedReception.motif_visite || "—"}
-                </div>
-              </div>
-              <span>-------------</span>
-              <div className="row mb-2">
-                <div className="col-6 fw-bold">Statut :</div>
-                <div className="col-6 text-uppercase">
-                  <span
-                    className={`badge ${
-                      statutColors[selectedReception.statut] || "bg-dark"
-                    } text-white`}
-                  >
-                    {statutLabel[selectedReception.statut]}
-                  </span>
-                </div>
-              </div>
-              <div className="row mb-2">
-                <div className="col-6 fw-bold">Fiche d'entrée :</div>
-                <div className="col-6">
-                  {selectedReception.vehicule?.fiche_entree_vehicule ? (
-                    <Link
-                      to={`${process.env.REACT_APP_API_BASE_URL_STORAGE}/${selectedReception.vehicule?.fiche_entree_vehicule}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn btn-outline-primary btn-sm"
-                    >
-                      Voir la fiche
-                    </Link>
-                  ) : (
-                    "Non disponible"
-                  )}
-                </div>
-              </div>
-              <div className="row mb-2">
-                <div className="col-6 fw-bold">Fiche de réception :</div>
-                <div className="col-6">
-                  {selectedReception.fiche_reception_vehicule ? (
-                    <Link
-                      to={`${process.env.REACT_APP_API_BASE_URL_STORAGE}/${selectedReception.fiche_reception_vehicule}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn btn-outline-primary btn-sm"
-                    >
-                      Voir la fiche
-                    </Link>
-                  ) : (
-                    "Non disponible"
-                  )}
-                </div>
-              </div>
-              <div className="row mb-2">
-                <div className="col-6 fw-bold">Date d’ajout :</div>
-                <div className="col-6">
-                  {format(
-                    new Date(selectedReception.created_at),
-                    "dd/MM/yyyy HH:mm:ss"
-                  )}
-                </div>
-              </div>
-              <div className="row mb-2">
-                <div className="col-6 fw-bold">Dernière mise à jour :</div>
-                <div className="col-6">
-                  {selectedReception.updated_at === selectedReception.created_at
-                    ? "-"
-                    : format(
-                        new Date(selectedReception.updated_at),
-                        "dd/MM/yyyy HH:mm:ss"
-                      )}
-                </div>
-              </div>
-            </div>
+          {modal.data && (
+            <ReceptionDetailsModalContent
+              reception={modal.data}
+              resolveStatusConfig={resolveStatusConfig}
+              checkPage={true}
+            />
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseDetailsModal}>
+          <Button variant="secondary" onClick={close}>
             Fermer
           </Button>
         </Modal.Footer>
       </Modal>
 
-      {/* Modal de mise à jour */}
-      <Modal
-        show={showUpdateModal}
-        onHide={handleCloseUpdateModal}
-        size="lg"
-        centered
-      >
+      <Modal show={modal.mode === "update"} onHide={close} size="lg" centered>
         <Modal.Header closeButton>
           <Modal.Title>Check-in du véhicule</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {showUpdateModal && receptionToUpdate && (
+          {modal.data && (
             <>
-              <div className="">
-                <h6>
-                  Immatriculation :{" "}
-                  {receptionToUpdate.vehicule?.immatriculation || "Inconnue"}
-                </h6>
-                <h6>
-                  Marque : {receptionToUpdate.vehicule?.marque || "Inconnue"}
-                </h6>
-                <h6>
-                  Modèle : {receptionToUpdate.vehicule?.modele || "Inconnue"}
-                </h6>
-              </div>
-              <span>-------------</span>
+              <BadgeVehicule
+                immatriculation={modal.data.vehicule?.immatriculation}
+                marque={modal.data.vehicule?.marque}
+                modele={modal.data.vehicule?.modele}
+                showDivider={true}
+              />
+
               <Check
-                reception={receptionToUpdate}
-                onClose={handleCloseUpdateModal}
+                loading={updateLoading}
+                reception={modal.data}
+                onClose={close}
                 onUpdate={handleUpdateReception}
               />
             </>
@@ -463,16 +332,16 @@ const CheckReception = () => {
       </Modal>
 
       <ConfirmPopup
-        show={showModal}
-        onClose={handleCloseModal}
+        show={modal.mode === "delete"}
+        onClose={close}
         onConfirm={handleDelete}
         title="Confirmer la suppression"
         body={
           <p>
-            Voulez-vous vraiment supprimer la réception{" "}
+            Voulez-vous vraiment supprimer la réception du véhicule{" "}
             <strong>
-              {selectedReception?.vehicule?.immatriculation || "Inconnue"}
-            </strong>{" "}
+              {modal.data?.vehicule?.immatriculation || "Inconnue"}
+            </strong>
             ?
           </p>
         }

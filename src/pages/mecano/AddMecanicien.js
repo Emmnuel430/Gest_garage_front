@@ -3,11 +3,12 @@ import { useNavigate } from "react-router-dom";
 import Layout from "../../components/Layout/Layout";
 import Back from "../../components/Layout/Back";
 import ConfirmPopup from "../../components/Layout/ConfirmPopup";
-import ToastMessage from "../../components/Layout/ToastMessage";
+import { useToast } from "../../contexts/ToastContext";
 import { fetchWithToken } from "../../utils/fetchWithToken";
 
 const AddMecanicien = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [mecanicien, setMecanicien] = useState({
     nom: "",
@@ -19,9 +20,32 @@ const AddMecanicien = () => {
     contact_urgence: "",
   });
 
+  const [vehiculeInput, setVehiculeInput] = useState("");
+  const [vehiculesList, setVehiculesList] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
+
+  const handleAddVehicule = (e) => {
+    if (e.key === "Enter" && vehiculeInput.trim() !== "") {
+      e.preventDefault();
+      const updatedList = [...vehiculesList, vehiculeInput.trim()];
+      setVehiculesList(updatedList);
+      setMecanicien({
+        ...mecanicien,
+        vehicules_maitrises: updatedList.join(", "),
+      });
+      setVehiculeInput("");
+    }
+  };
+
+  const removeVehicule = (index) => {
+    const updatedList = vehiculesList.filter((_, i) => i !== index);
+    setVehiculesList(updatedList);
+    setMecanicien({
+      ...mecanicien,
+      vehicules_maitrises: updatedList.join(", "),
+    });
+  };
 
   const handleShowModal = () => {
     if (
@@ -31,10 +55,9 @@ const AddMecanicien = () => {
       !mecanicien.contact ||
       !mecanicien.contact_urgence
     ) {
-      setError("Tous les champs sont requis.");
+      showToast("Tous les champs sont requis.", "danger");
       return;
     }
-    setError("");
     setShowModal(true);
   };
 
@@ -43,18 +66,8 @@ const AddMecanicien = () => {
   const addMecanicien = async () => {
     setLoading(true);
     try {
-      const userInfo = JSON.parse(sessionStorage.getItem("user-info"));
-      const userId = userInfo ? userInfo.id : null;
-
-      if (!userId) {
-        alert("Utilisateur non authentifié. Veuillez vous connecter.");
-        navigate("/");
-        return;
-      }
-
       const payload = {
         ...mecanicien,
-        user_id: userId,
       };
 
       const response = await fetchWithToken(
@@ -66,20 +79,18 @@ const AddMecanicien = () => {
             Accept: "application/json",
           },
           body: JSON.stringify(payload),
-        }
+        },
       );
-
-      // console.log(JSON.stringify(payload));
 
       const result = await response.json();
 
       if (!response.ok) {
-        setError(result.error || "Une erreur est survenue.");
+        showToast(result.error || "Une erreur est survenue.", "danger");
         setLoading(false);
         return;
       }
 
-      alert("Mécanicien ajouté avec succès.");
+      showToast("Mécanicien ajouté avec succès.", "success");
       setMecanicien({
         nom: "",
         prenom: "",
@@ -89,9 +100,10 @@ const AddMecanicien = () => {
         contact: "",
         contact_urgence: "",
       });
+      setVehiculesList([]);
       navigate("/mecaniciens");
     } catch (e) {
-      setError("Une erreur inattendue s'est produite.");
+      showToast("Une erreur inattendue s'est produite.", "danger");
     } finally {
       setLoading(false);
       setShowModal(false);
@@ -104,16 +116,7 @@ const AddMecanicien = () => {
       <div className="col-sm-6 offset-sm-3 mt-5">
         <h1>Ajout d'un Mécanicien</h1>
 
-        {error && (
-          <ToastMessage
-            message={error}
-            onClose={() => {
-              setError(null);
-            }}
-          />
-        )}
-
-        <label className="form-label">Nom</label>
+        <label className="form-label">Nom *</label>
         <input
           type="text"
           className="form-control"
@@ -125,7 +128,7 @@ const AddMecanicien = () => {
         />
         <br />
 
-        <label className="form-label">Prénom</label>
+        <label className="form-label">Prénom *</label>
         <input
           type="text"
           className="form-control"
@@ -136,7 +139,7 @@ const AddMecanicien = () => {
           }
         />
         <br />
-        <label className="form-label">Type</label>
+        <label className="form-label">Type *</label>
         <select
           name="type"
           id="type"
@@ -151,19 +154,33 @@ const AddMecanicien = () => {
           <option value="externe">Externe</option>
         </select>
         <br />
-        <label className="form-label">Véhicules maîtrisés</label>
-        <textarea
+        <label className="form-label">
+          Véhicules maîtrisés (Appuyez sur Entrée pour ajouter)
+        </label>
+        <input
+          type="text"
           className="form-control"
-          placeholder="BMW, Mercedes, Audi..."
-          rows={4}
-          value={mecanicien.vehicules_maitrises}
-          onChange={(e) =>
-            setMecanicien({
-              ...mecanicien,
-              vehicules_maitrises: e.target.value,
-            })
-          }
+          placeholder="Ex: BMW, Mercedes..."
+          value={vehiculeInput}
+          onChange={(e) => setVehiculeInput(e.target.value)}
+          onKeyDown={handleAddVehicule}
         />
+        <div className="mt-2 d-flex flex-wrap gap-2">
+          {vehiculesList.map((item, index) => (
+            <span
+              key={index}
+              className="badge bg-primary d-flex align-items-center"
+            >
+              {item}
+              <button
+                type="button"
+                className="btn-close btn-close-white ms-2"
+                style={{ fontSize: "0.5rem" }}
+                onClick={() => removeVehicule(index)}
+              ></button>
+            </span>
+          ))}
+        </div>
         <br />
 
         <label className="form-label">Expérience (en année)</label>
@@ -177,7 +194,7 @@ const AddMecanicien = () => {
           }
         />
         <br />
-        <label className="form-label">Contact</label>
+        <label className="form-label">Contact *</label>
         <input
           type="number"
           className="form-control"
@@ -188,7 +205,7 @@ const AddMecanicien = () => {
           }
         />
         <br />
-        <label className="form-label">Contact d'urgence</label>
+        <label className="form-label">Contact d'urgence *</label>
         <input
           type="number"
           className="form-control"

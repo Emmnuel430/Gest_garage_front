@@ -3,13 +3,14 @@ import { useNavigate, useParams } from "react-router-dom";
 import Layout from "../../components/Layout/Layout";
 import Back from "../../components/Layout/Back";
 import ConfirmPopup from "../../components/Layout/ConfirmPopup"; // Importation du popup de confirmation
+import { useToast } from "../../contexts/ToastContext";
 import { fetchWithToken } from "../../utils/fetchWithToken";
 
 const UserUpdate = () => {
   // Récupération de l'ID de l'utilisateur à partir des paramètres d'URL
   const { id } = useParams();
   const navigate = useNavigate();
-  const [error, setError] = useState(""); // État pour les erreurs
+  const { showToast } = useToast();
   const [user, setUser] = useState({
     first_name: "",
     last_name: "",
@@ -29,25 +30,27 @@ const UserUpdate = () => {
   useEffect(() => {
     // Fonction pour récupérer les données d'un utilisateur via l'API
     const fetchUser = async () => {
-      setError(""); // Réinitialisation de l'erreur avant chaque appel
       try {
         const response = await fetchWithToken(
-          `${process.env.REACT_APP_API_BASE_URL}/user/${id}`
+          `${process.env.REACT_APP_API_BASE_URL}/user/${id}`,
         ); // Requête pour récupérer l'utilisateur
         if (!response.ok) {
           throw new Error(
-            "Erreur lors de la récupération des données utilisateur."
+            "Erreur lors de la récupération des données utilisateur.",
           );
         }
         const data = await response.json(); // Parse de la réponse JSON
         setUser({ ...data.user, newPassword: "" }); // Mise à jour des données utilisateur
       } catch (error) {
-        setError("Erreur lors de la récupération des données utilisateur.");
+        showToast(
+          "Erreur lors de la récupération des données utilisateur.",
+          "danger",
+        );
       }
     };
 
     fetchUser(); // Appel de la fonction pour récupérer les données de l'utilisateur
-  }, [id]);
+  }, [id, showToast]);
 
   // Fonction pour gérer les changements dans les champs du formulaire
   const handleChange = (e) => {
@@ -68,11 +71,13 @@ const UserUpdate = () => {
 
   // Fonction pour mettre à jour les données de l'utilisateur via l'API
   const updateUser = async () => {
-    setError(""); // Réinitialisation de l'erreur avant la mise à jour
     setLoading(true); // Indique que l'on est en cours de traitement
     try {
       if (!userId) {
-        alert("Utilisateur non authentifié. Veuillez vous connecter.");
+        showToast(
+          "Utilisateur non authentifié. Veuillez vous connecter.",
+          "danger",
+        );
         navigate("/"); // Si l'utilisateur n'est pas authentifié, redirige vers la page de connexion
         return;
       }
@@ -85,7 +90,7 @@ const UserUpdate = () => {
         body.password = newPassword; // Si un nouveau mot de passe est fourni, l'ajouter au corps
       }
 
-      if (userInfo.role === "super_admin" && role) {
+      if (userInfo.role === "admin" && role) {
         body.role = role;
       }
 
@@ -96,38 +101,33 @@ const UserUpdate = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            ...body,
-            user_id: userId,
-          }),
-        }
+          body: JSON.stringify(body),
+        },
       );
 
       const data = await response.json(); // Parse de la réponse JSON
 
       if (response.ok) {
-        alert("Données mises à jour !");
+        showToast("Données mises à jour avec succès !", "success");
         if (parseInt(userId) === parseInt(id)) {
           sessionStorage.setItem("user-info", JSON.stringify(data.user));
-          // window.location.reload();
         }
         navigate("/utilisateurs"); // Redirige vers la liste des utilisateurs après la mise à jour
       } else {
-        const errorResponse = await response.json();
-        alert(errorResponse.message || "Échec de la mise à jour.");
+        showToast(data.message || "Échec de la mise à jour.", "danger");
       }
     } catch (error) {
-      setError("Erreur lors de la mise à jour de l'utilisateur."); // Gère l'erreur éventuelle
+      showToast("Erreur lors de la mise à jour de l'utilisateur.", "danger"); // Gère l'erreur éventuelle
     } finally {
       setLoading(false); // Fin du traitement
     }
   };
 
   const roles = [
-    { value: "super_admin", label: "Super Admin" },
+    { value: "admin", label: "Gérant" },
     { value: "gardien", label: "Gardien" },
-    { value: "secretaire", label: "Secrétaire" },
-    { value: "chef_atelier", label: "Chef Atelier" },
+    { value: "reception", label: "Réception" },
+    { value: "caisse_outils", label: "Caisse Outils" },
     { value: "caisse", label: "Caisse" },
   ];
 
@@ -135,8 +135,6 @@ const UserUpdate = () => {
     <Layout>
       <Back>utilisateurs</Back>
       <div className="col-sm-6 offset-sm-3">
-        {error && <div className="alert alert-danger">{error}</div>}{" "}
-        {/* Affiche les erreurs, s'il y en a */}
         <h1>Modifier les données de l'utilisateur</h1>
         <br />
         {/* Champs de formulaire pour modifier les données de l'utilisateur */}
@@ -179,7 +177,7 @@ const UserUpdate = () => {
           onChange={handleChange}
         />
         <br />
-        {userInfo.role === "super_admin" && (
+        {userInfo.role === "admin" && (
           <>
             <label htmlFor="role" className="form-label">
               Rôle
