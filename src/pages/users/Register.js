@@ -1,9 +1,9 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../../components/Layout/Layout";
 import Back from "../../components/Layout/Back";
 import ConfirmPopup from "../../components/Layout/ConfirmPopup"; // Importation du modal de confirmation
-import ToastMessage from "../../components/Layout/ToastMessage"; // Importation du composant de message toast
+import { useToast } from "../../contexts/ToastContext";
 import { fetchWithToken } from "../../utils/fetchWithToken";
 
 const Register = () => {
@@ -15,9 +15,9 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState(""); // Rôle de l'utilisateur
   const [loading, setLoading] = useState(false); // Indicateur de chargement lors de la soumission
-  const [error, setError] = useState(""); // Message d'erreur en cas de problème
   const [showModal, setShowModal] = useState(false); // Contrôle l'affichage du modal de confirmation
   const navigate = useNavigate(); // Hook pour la navigation
+  const { showToast } = useToast();
 
   // Récupération de l'utilisateur actuellement connecté depuis le sessionStorage
   const userInfo = JSON.parse(sessionStorage.getItem("user-info"));
@@ -25,22 +25,24 @@ const Register = () => {
 
   // Si aucun utilisateur n'est authentifié, on redirige vers la page de connexion
   if (!userId) {
-    alert("Utilisateur non authentifié. Veuillez vous connecter.");
+    showToast(
+      "Utilisateur non authentifié. Veuillez vous connecter.",
+      "warning",
+    );
     navigate("/");
     return;
   }
 
   const roles = [
-    { value: "super_admin", label: "Super Admin" },
+    { value: "admin", label: "Gérant" },
     { value: "gardien", label: "Gardien" },
-    { value: "secretaire", label: "Secrétaire" },
-    { value: "chef_atelier", label: "Chef Atelier" },
+    { value: "reception", label: "Réception" },
+    { value: "caisse_outils", label: "Caisse Outils" },
     { value: "caisse", label: "Caisse" },
   ];
 
   // Fonction pour confirmer l'inscription
   const handleConfirm = () => {
-    setShowModal(false); // Ferme le modal
     signUp(); // Lance la fonction d'inscription
   };
 
@@ -53,16 +55,15 @@ const Register = () => {
   const signUp = async () => {
     // Vérification que tous les champs sont remplis
     if (!nom || !prenom || !pseudo || !password) {
-      setError("Tous les champs sont requis.");
+      showToast("Tous les champs sont requis.", "danger");
       return;
     }
 
-    setError(""); // Réinitialise l'erreur
     setLoading(true); // Active le chargement
 
     try {
       // Données à envoyer au serveur
-      const item = { nom, prenom, pseudo, password, role, admin_id: userId };
+      const item = { nom, prenom, pseudo, password, role };
 
       // Envoi des données au backend avec une requête POST
       let result = await fetchWithToken(
@@ -74,20 +75,20 @@ const Register = () => {
             "Content-Type": "application/json",
             Accept: "application/json",
           },
-        }
+        },
       );
 
       result = await result.json();
 
       // Si une erreur est retournée par le serveur, on l'affiche et on désactive le chargement
       if (result.error) {
-        setError(result.error);
+        showToast(result.error, "danger");
         setLoading(false);
         return;
       }
 
       setLoading(false); // Désactive le chargement
-      alert("Utilisateur enregistré"); // Message de confirmation
+      showToast("Utilisateur enregistré avec succès.", "success");
       setNom(""); // Réinitialise les champs du formulaire
       setPrenom("");
       setPseudo("");
@@ -95,8 +96,13 @@ const Register = () => {
       setRole("");
       navigate("/utilisateurs"); // Redirige vers la liste des utilisateurs
     } catch (e) {
-      setError("Une erreur inattendue s'est produite. Veuillez réessayer."); // En cas d'erreur serveur
+      showToast(
+        "Une erreur inattendue s'est produite. Veuillez réessayer.",
+        "danger",
+      );
       setLoading(false);
+    } finally {
+      setShowModal(false); // Ferme le modal de confirmation
     }
   };
 
@@ -105,16 +111,6 @@ const Register = () => {
       <Back>utilisateurs</Back>
       <div className="col-sm-6 offset-sm-3 mt-5">
         <h1>Création d'un nouvel utilisateur</h1>
-
-        {/* Affichage d'un message d'erreur si nécessaire */}
-        {error && (
-          <ToastMessage
-            message={error}
-            onClose={() => {
-              setError(null);
-            }}
-          />
-        )}
 
         {/* Formulaire d'inscription */}
         <label htmlFor="nom" className="form-label">

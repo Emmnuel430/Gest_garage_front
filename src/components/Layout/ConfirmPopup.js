@@ -8,6 +8,7 @@ const ConfirmPopup = ({
   body,
   confirmText = "Confirmer",
   cancelText = "Annuler",
+  btnColor = "primary",
 }) => {
   const [loading, setLoading] = useState(false); // État de chargement
 
@@ -53,7 +54,7 @@ const ConfirmPopup = ({
             </button>
             <button
               type="button"
-              className="btn btn-primary"
+              className={`btn btn-${btnColor}`}
               onClick={handleConfirm}
               disabled={loading} // Désactive le bouton "Confirmer" pendant le chargement
             >
