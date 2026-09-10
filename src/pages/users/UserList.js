@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "react-bootstrap";
 import Layout from "../../components/Layout/Layout";
 import HeaderWithFilter from "../../components/Layout/HeaderWithFilter";
@@ -63,17 +63,14 @@ const UserList = () => {
     resetPagination();
   };
 
-  useEffect(() => {
-    const controller = new AbortController();
-    let isMounted = true;
-
-    const fetchUsers = async () => {
+  const fetchUsers = useCallback(
+    async (signal) => {
       setLoading(true);
 
       try {
         const response = await fetchWithToken(
           `${process.env.REACT_APP_API_BASE_URL}/liste_user?page=${currentPage}&role=${filter}&search=${encodeURIComponent(searchQuery)}`,
-          { signal: controller.signal },
+          signal ? { signal } : undefined,
         );
 
         if (!response.ok) {
@@ -81,35 +78,32 @@ const UserList = () => {
         }
 
         const data = await response.json();
-        if (isMounted) {
-          setUsers(data.users || []);
+        setUsers(data.users || []);
 
-          if (data.pagination) {
-            setPagination(data.pagination);
-          }
+        if (data.pagination) {
+          setPagination(data.pagination);
         }
       } catch (err) {
         if (err.name === "AbortError") return;
-        if (isMounted) {
-          showToast(
-            "Impossible de charger les données : " + err.message,
-            "danger",
-          );
-        }
+        showToast(
+          "Impossible de charger les données : " + err.message,
+          "danger",
+        );
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
-    };
+    },
+    [currentPage, filter, searchQuery, showToast],
+  );
 
-    fetchUsers();
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchUsers(controller.signal);
 
     return () => {
-      isMounted = false;
       controller.abort();
     };
-  }, [currentPage, filter, searchQuery, showToast]);
+  }, [fetchUsers]);
 
   useEffect(() => {
     resetPagination();
@@ -132,7 +126,7 @@ const UserList = () => {
 
       if (result.status === "deleted") {
         showToast("Utilisateur supprimé !", "success");
-        setUsers((prev) => prev.filter((u) => u.id !== selectedUser.id));
+        fetchUsers();
       } else {
         showToast("Échec de la suppression.", "danger");
       }
@@ -158,8 +152,8 @@ const UserList = () => {
 
       if (result.status === "deleted") {
         showToast("Utilisateurs supprimés !", "success");
-        setUsers((prev) => prev.filter((u) => !selectedIds.includes(u.id)));
         setSelectedIds([]);
+        fetchUsers();
       } else {
         showToast("Échec de la suppression groupée.", "danger");
       }
