@@ -50,6 +50,9 @@ const Reparations = () => {
     startIndex,
     startIndex + reparationsPerPage,
   );
+  const userInfo = JSON.parse(sessionStorage.getItem("user-info"));
+  const isAuthorized =
+    userInfo?.role === "admin" || userInfo?.role === "reception";
 
   const fetchReparations = useCallback(async () => {
     setLoading(true);
@@ -146,12 +149,14 @@ const Reparations = () => {
                         </span>{" "}
                         {rep.reception?.vehicule?.mecanicien?.prenom || ""}
                       </Card.Text>
-                      <Button
-                        variant="success"
-                        onClick={() => open("finish", rep)}
-                      >
-                        Terminer
-                      </Button>
+                      {isAuthorized && (
+                        <Button
+                          variant="success"
+                          onClick={() => open("finish", rep)}
+                        >
+                          Terminer
+                        </Button>
+                      )}
                     </Card.Body>
                   </Card>
                 </div>
@@ -200,9 +205,7 @@ const Reparations = () => {
           <Modal.Title>Détails de la réparation</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {modal.data && (
-            <ReparationDetails reparation={modal.data} />
-          )}
+          {modal.data && <ReparationDetails reparation={modal.data} />}
         </Modal.Body>
       </Modal>
 
@@ -216,10 +219,7 @@ const Reparations = () => {
         body={
           <p>
             Voulez-vous vraiment terminer la réparation <br /> du véhicule{" "}
-            <strong>
-              {modal.data?.reception?.vehicule?.immatriculation}
-            </strong>
-            ?
+            <strong>{modal.data?.reception?.vehicule?.immatriculation}</strong>?
           </p>
         }
       />
