@@ -158,6 +158,11 @@ const PretOutilForm = ({
         <span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle ms-2">
           {outil.reference}
         </span>
+        {outil.est_special && (
+          <span className="badge bg-warning-subtle text-warning border border-warning-subtle ms-2">
+            Spécial ({Number(outil.prix_par_heure || 0).toLocaleString()} FCFA/h)
+          </span>
+        )}
       </div>
       <div>
         {outil.quantite > 0 ? (
