@@ -28,11 +28,17 @@ const AddReception = () => {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-  const handleAddMotif = (e) => {
-    if (e.key === "Enter" && motifInput.trim() !== "") {
-      e.preventDefault();
+  const addCurrentMotif = () => {
+    if (motifInput.trim() !== "") {
       setMotifsList((prev) => [...prev, motifInput.trim()]);
       setMotifInput("");
+    }
+  };
+
+  const handleAddMotif = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addCurrentMotif();
     }
   };
 
@@ -168,7 +174,7 @@ const AddReception = () => {
 
         <label className="form-label">Mecanicien *</label>
         <Select
-          className="bg-body"
+          className="bg-body mb-3"
           classNamePrefix="select"
           options={mecanicienOptions}
           value={
@@ -205,18 +211,28 @@ const AddReception = () => {
             <hr />
           </>
         )} */}
-        <br />
         <label className="form-label">
-          Motif(s) de la visite * (Entrée pour ajouter)
+          Motif(s) de la visite * (Entrée ou bouton Ajouter)
         </label>
-        <input
-          type="text"
-          className="form-control"
-          placeholder="Ex: Révision, Vidange..."
-          value={motifInput}
-          onChange={(e) => setMotifInput(e.target.value)}
-          onKeyDown={handleAddMotif}
-        />
+        <div className="input-group">
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Ex: Révision, Vidange..."
+            value={motifInput}
+            onChange={(e) => setMotifInput(e.target.value)}
+            onKeyDown={handleAddMotif}
+          />
+          <button
+            type="button"
+            className="btn btn-primary d-flex align-items-center gap-1"
+            onClick={addCurrentMotif}
+            disabled={!motifInput.trim()}
+          >
+            <i className="fa fa-plus"></i>
+            <span>Ajouter</span>
+          </button>
+        </div>
         <div className="mt-2 d-flex flex-wrap gap-2">
           {motifsList.map((motif, index) => (
             <span

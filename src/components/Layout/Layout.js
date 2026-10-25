@@ -11,6 +11,7 @@ import { fetchWithToken } from "../../utils/fetchWithToken";
 import useIdleLogout from "../../utils/useIdleLogout";
 import { formatRole } from "../../utils/helpers";
 import Avatar from "./Avatar";
+import NotificationBell from "./NotificationBell";
 
 // Définition du composant Layout qui sera utilisé comme un modèle de page (avec du contenu dynamique via 'children')
 const Layout = ({ children }) => {
@@ -38,6 +39,7 @@ const Layout = ({ children }) => {
       setShowLogoutModal(false);
       // Nettoyage et redirection
       sessionStorage.clear();
+      window.dispatchEvent(new Event("garage-auth-changed"));
       navigate("/");
     }
   }
@@ -75,6 +77,9 @@ const Layout = ({ children }) => {
 
           {/* Section de la barre de navigation avec notifications et messages */}
           <div className="navbar-nav align-items-center ms-auto">
+            {/* Cloche de notifications temps réel */}
+            {user && <NotificationBell />}
+
             {/* Changement de thème */}
             <ThemeSwitcher />
 

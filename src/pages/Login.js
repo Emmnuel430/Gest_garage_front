@@ -52,6 +52,7 @@ const Login = () => {
 
       sessionStorage.setItem("user-info", JSON.stringify(result.user));
       sessionStorage.setItem("token", result.access_token);
+      window.dispatchEvent(new Event("garage-auth-changed"));
 
       setLoading(false);
       navigate("/home");
