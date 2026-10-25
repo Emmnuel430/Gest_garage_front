@@ -5,12 +5,11 @@ import { fetchWithToken } from "../utils/fetchWithToken";
 
 const Parametres = () => {
   const [tarifHoraire, setTarifHoraire] = useState("");
-  const [prixEntree, setPrixEntree] = useState("");
   const [tarifJoursSupp, setTarifJoursSupp] = useState("");
   const [loading, setLoading] = useState(false);
   const { showToast } = useToast();
 
-  // ✅ Récupérer les tarifs depuis l'API
+  // Recupérer les tarifs depuis l'API
   useEffect(() => {
     const fetchTarifs = async () => {
       try {
@@ -19,7 +18,6 @@ const Parametres = () => {
         );
         const data = await response.json();
         setTarifHoraire(data.tarif_horaire ?? 1000);
-        setPrixEntree(data.prix_entree ?? 5000);
         setTarifJoursSupp(data.tarif_jours_supp ?? 2000);
       } catch (err) {
         showToast("Erreur lors du chargement des tarifs.", "danger");
@@ -29,7 +27,7 @@ const Parametres = () => {
     fetchTarifs();
   }, [showToast]);
 
-  // ✅ Modifier les tarifs
+  // Modifier les tarifs
   const handleSubmit = async () => {
     setLoading(true);
 
@@ -43,7 +41,6 @@ const Parametres = () => {
           },
           body: JSON.stringify({
             tarif_horaire: tarifHoraire,
-            prix_entree: prixEntree,
             tarif_jours_supp: tarifJoursSupp,
           }),
         },
@@ -65,18 +62,6 @@ const Parametres = () => {
         <h3 className="mb-4">Paramètres de tarification</h3>
 
         <div className="card p-4 shadow-sm">
-          <div className="mb-3">
-            <label className="form-label fw-bold">Prix fixe d'entrée (FCFA)</label>
-            <input
-              type="number"
-              className="form-control"
-              value={prixEntree}
-              min="0"
-              onChange={(e) => setPrixEntree(e.target.value)}
-            />
-            <small className="text-muted">Forfait appliqué dès l'entrée du véhicule.</small>
-          </div>
-
           <div className="mb-3">
             <label className="form-label fw-bold">Tarif horaire (FCFA / heure)</label>
             <input

@@ -42,6 +42,11 @@ const PretsOutilsTable = ({
                   </td>
                   <td>
                     <strong>{pret.outil?.libelle || "-"}</strong>
+                    {pret.outil?.est_special && (
+                      <span className="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill ms-2 small">
+                        Spécial ({Number(pret.outil.prix_par_heure || 0).toLocaleString()} FCFA/h)
+                      </span>
+                    )}
                     <br />
                     <small className="text-muted">
                       {pret.outil?.reference}

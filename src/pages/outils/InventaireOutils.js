@@ -21,6 +21,8 @@ const InventaireOutils = () => {
   const [libelle, setLibelle] = useState("");
   const [reference, setReference] = useState("");
   const [quantite, setQuantite] = useState(0);
+  const [estSpecial, setEstSpecial] = useState(false);
+  const [prixParHeure, setPrixParHeure] = useState(0);
   const [selected, setSelected] = useState(null);
   const formSectionRef = useRef(null);
 
@@ -98,12 +100,19 @@ const InventaireOutils = () => {
     setLibelle("");
     setReference("");
     setQuantite(0);
+    setEstSpecial(false);
+    setPrixParHeure(0);
     setSelected(null);
   };
 
   const handleSubmit = async () => {
     if (!libelle || !reference || quantite < 0) {
-      showToast("Veuillez remplir tous les champs.", "danger");
+      showToast("Veuillez remplir tous les champs obligatoires.", "danger");
+      return;
+    }
+
+    if (estSpecial && (!prixParHeure || Number(prixParHeure) <= 0)) {
+      showToast("Veuillez renseigner un tarif horaire valide pour cet outil spécial.", "danger");
       return;
     }
 
@@ -115,7 +124,13 @@ const InventaireOutils = () => {
 
       const response = await fetchWithToken(url, {
         method: "POST",
-        body: JSON.stringify({ libelle, reference, quantite }),
+        body: JSON.stringify({
+          libelle,
+          reference,
+          quantite,
+          est_special: estSpecial,
+          prix_par_heure: estSpecial ? Number(prixParHeure) : 0,
+        }),
       });
 
       const data = await response.json();
@@ -147,6 +162,8 @@ const InventaireOutils = () => {
     setLibelle(outil.libelle);
     setReference(outil.reference);
     setQuantite(outil.quantite);
+    setEstSpecial(Boolean(outil.est_special));
+    setPrixParHeure(outil.prix_par_heure || 0);
 
     requestAnimationFrame(() => {
       formSectionRef.current?.scrollIntoView({
@@ -222,9 +239,13 @@ const InventaireOutils = () => {
                   libelle={libelle}
                   reference={reference}
                   quantite={quantite}
+                  estSpecial={estSpecial}
+                  prixParHeure={prixParHeure}
                   setLibelle={setLibelle}
                   setReference={setReference}
                   setQuantite={setQuantite}
+                  setEstSpecial={setEstSpecial}
+                  setPrixParHeure={setPrixParHeure}
                   onSubmit={handleSubmit}
                   onCancel={resetFields}
                   loading={actionLoading}

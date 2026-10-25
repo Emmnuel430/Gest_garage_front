@@ -70,18 +70,30 @@ const OutilsTable = ({
                     <td>
                       <div className="d-flex align-items-center gap-2">
                         <div
-                          className="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                          className={`${
+                            outil.est_special
+                              ? "bg-warning-subtle text-warning"
+                              : "bg-primary-subtle text-primary"
+                          } rounded-circle d-flex align-items-center justify-content-center flex-shrink-0`}
                           style={{
                             width: "36px",
                             height: "36px",
                           }}
                         >
-                          <i className="fas fa-tools"></i>
+                          <i className={`fas ${outil.est_special ? "fa-star" : "fa-tools"}`}></i>
                         </div>
 
-                        <span className="fw-semibold text-body">
-                          {outil.libelle}
-                        </span>
+                        <div>
+                          <span className="fw-semibold text-body d-block">
+                            {outil.libelle}
+                          </span>
+                          {outil.est_special ? (
+                            <span className="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill small">
+                              <i className="fas fa-coins me-1"></i>
+                              Spécial : {Number(outil.prix_par_heure || 0).toLocaleString()} FCFA/h
+                            </span>
+                          ) : null}
+                        </div>
                       </div>
                     </td>
 

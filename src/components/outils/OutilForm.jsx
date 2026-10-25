@@ -5,17 +5,22 @@ const OutilForm = ({
   libelle,
   reference,
   quantite,
+  estSpecial = false,
+  prixParHeure = 0,
   setLibelle,
   setReference,
   setQuantite,
+  setEstSpecial,
+  setPrixParHeure,
   onSubmit,
   onCancel,
   loading,
 }) => {
   const isEditing = Boolean(selected);
 
+  const isPriceInvalid = estSpecial && (!prixParHeure || Number(prixParHeure) <= 0);
   const isDisabled =
-    loading || !libelle.trim() || !reference.trim() || quantite <= 0;
+    loading || !libelle.trim() || !reference.trim() || quantite < 0 || isPriceInvalid;
 
   return (
     <div className="card shadow-sm">
@@ -89,7 +94,7 @@ const OutilForm = ({
           </div>
         </div>
 
-        <div className="mb-4">
+        <div className="mb-3">
           <label className="form-label small fw-semibold">
             Quantité <span className="text-danger">*</span>
           </label>
@@ -109,6 +114,48 @@ const OutilForm = ({
 
             <span className="input-group-text text-muted small">unités</span>
           </div>
+        </div>
+
+        {/* Option outil spécial */}
+        <div className="mb-4 p-3 rounded-3 bg-body-tertiary border">
+          <div className="form-check form-switch mb-0">
+            <input
+              className="form-check-input"
+              type="checkbox"
+              role="switch"
+              id="estSpecialSwitch"
+              checked={Boolean(estSpecial)}
+              onChange={(e) => setEstSpecial?.(e.target.checked)}
+            />
+            <label className="form-check-label fw-semibold small" htmlFor="estSpecialSwitch">
+              Outil spécial (facturé à l'heure)
+            </label>
+            <div className="text-muted small">
+              Facturé au client selon le chrono d'intervention sur son véhicule.
+            </div>
+          </div>
+
+          {estSpecial && (
+            <div className="mt-3 pt-3 border-top">
+              <label className="form-label small fw-semibold">
+                Tarif horaire de l'outil (FCFA / heure) <span className="text-danger">*</span>
+              </label>
+              <div className="input-group">
+                <span className="input-group-text bg-body-secondary">
+                  <i className="fas fa-coins text-muted"></i>
+                </span>
+                <input
+                  type="number"
+                  className="form-control"
+                  min="1"
+                  placeholder="Ex. 2500"
+                  value={prixParHeure || ""}
+                  onChange={(e) => setPrixParHeure?.(Math.max(0, Number(e.target.value)))}
+                />
+                <span className="input-group-text text-muted small">FCFA / h</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Actions */}

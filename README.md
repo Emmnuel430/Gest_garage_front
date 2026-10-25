@@ -1,70 +1,80 @@
-# Getting Started with Create React App
+# Frontend - Gestion de Garage
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Interface utilisateur React 19 pour la gestion du garage automobile.
 
-## Available Scripts
+## Prerequis
 
-In the project directory, you can run:
+- Node.js 18+ ou 20+
+- pnpm (recommande) ou npm
 
-### `npm start`
+## Installation
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+```bash
+pnpm install
+cp .env.example .env # ou configurer directement le fichier .env
+```
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Variables d'Environnement
 
-### `npm test`
+Les variables concernant Laravel Reverb s'utilisent desormais directement sans obligation de prefixe `REACT_APP_` (avec fallback transparent pour retrocompatibilite) :
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```env
+# Reverb WebSocket
+REVERB_APP_KEY=...
+REVERB_HOST=127.0.0.1
+REVERB_PORT=8080
+REVERB_SCHEME=http
 
-### `npm run build`
+# Retrocompatibilite Create React App (si necessaire)
+REACT_APP_REVERB_APP_KEY=...
+REACT_APP_REVERB_HOST=127.0.0.1
+REACT_APP_REVERB_PORT=8080
+REACT_APP_REVERB_SCHEME=http
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+# Backend API
+REACT_APP_API_URL=http://127.0.0.1:8000/api
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Fonctionnalites Cles et Modifications Recentes
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### 1. Outils Speciaux Factures a l'Heure
+- Formulaire d'ajout / modification d'outil (`OutilForm.jsx`, `InventaireOutils.js`) :
+  - Interrupteur dedie : **Outil special (facture a l'heure)**.
+  - Champ de saisie : **Tarif horaire (FCFA/h)** obligatoire des que l'option speciale est activee.
+- Tableaux de visualisation (`OutilsTable.jsx`, `PretsOutilsTable.jsx`) :
+  - Badge visuel distinctif indiquant le tarif horaire pour chaque outil special.
+- Fiche de pret (`PretOutilForm.jsx`) :
+  - Signalement instantane a la selection d'un outil special avec rappel du cout horaire applique selon le chrono du vehicule.
 
-### `npm run eject`
+### 2. Suppression du Prix Fixe d'Entree
+- Le champ "Prix fixe d'entree" (prise en charge) a ete retire de la page des parametres generaux (`Parametres.js`).
+- Seuls les tarifs reglementaires horaires et journaliers supplementaires sont desormais modifiables et transmis a l'API.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### 3. Connexion WebSocket Reverb Unifiee
+- L'initialisation d'Echo (`src/utils/echo.js`) prend en charge en priorite les variables `REVERB_APP_KEY`, `REVERB_HOST`, `REVERB_PORT`, `REVERB_SCHEME`.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Commandes Disponibles
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### Lancement en developpement
+```bash
+pnpm start
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Verification et Compilation de production
+```bash
+pnpm build
+```
 
-## Learn More
+### Batterie de Tests Automatises
+Des tests unitaires et d'integration valident les fonctionnalites critiques :
+- `EchoConfig.test.js` : Prise en charge des variables d'environnement `REVERB_*` sans prefixe et fallback.
+- `Parametres.test.js` : Verification de l'absence du champ prix fixe d'entree.
+- `OutilForm.test.js` : Comportement dynamique du formulaire des outils speciaux (activation tarif horaire, validations).
+- `OutilsTable.test.js` : Affichage conforme des badges d'outils speciaux et des tarifs horaires.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```bash
+# Executer l'ensemble de la batterie de tests
+pnpm test --watchAll=false
+# ou
+node ./node_modules/react-scripts/scripts/test.js --watchAll=false
+```
