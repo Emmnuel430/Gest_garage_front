@@ -21,6 +21,18 @@ describe("Echo configuration with REVERB environment variables", () => {
     expect(echo).toBeNull();
   });
 
+  test("returns null without throwing when reverb key is missing or empty (avoids Pusher exception)", () => {
+    sessionStorage.setItem("token", "dummy-jwt-token");
+    delete process.env.REVERB_APP_KEY;
+    delete process.env.REACT_APP_REVERB_APP_KEY;
+
+    expect(() => {
+      const echo = getEcho();
+      expect(echo).toBeNull();
+    }).not.toThrow();
+  });
+
+
   test("initializes Echo reading REVERB_* env variables without REACT_APP_ prefix", () => {
     sessionStorage.setItem("token", "dummy-jwt-token");
     process.env.REVERB_APP_KEY = "my_reverb_key_custom";
