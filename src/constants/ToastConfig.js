@@ -1,27 +1,27 @@
 export const TOAST_CONFIG = {
   success: {
     icon: "fas fa-check-circle",
-    colorClass: "text-bg-success",
-    btnTheme: "dark",
+    colorClass: "text-bg-success shadow-lg border-0",
+    isDarkBtn: true, // bouton blanc sur fond vert foncé
   },
   error: {
-    icon: "fas fa-exclamation-circle",
-    colorClass: "text-bg-danger",
-    btnTheme: "dark",
+    icon: "fas fa-circle-exclamation",
+    colorClass: "text-bg-danger shadow-lg border-0",
+    isDarkBtn: true, // bouton blanc sur fond rouge foncé
   },
   danger: {
-    icon: "fas fa-exclamation-circle",
-    colorClass: "text-bg-danger",
-    btnTheme: "dark",
+    icon: "fas fa-circle-exclamation",
+    colorClass: "text-bg-danger shadow-lg border-0",
+    isDarkBtn: true,
   },
   warning: {
-    icon: "fas fa-exclamation-triangle",
-    colorClass: "text-bg-warning",
-    btnTheme: "light",
+    icon: "fas fa-triangle-exclamation",
+    colorClass: "bg-warning text-dark shadow-lg border-0",
+    isDarkBtn: false, // bouton noir sur fond jaune
   },
   info: {
-    icon: "fas fa-info-circle",
-    colorClass: "text-bg-info",
-    btnTheme: "light",
+    icon: "fas fa-circle-info",
+    colorClass: "text-bg-primary shadow-lg border-0",
+    isDarkBtn: true, // bouton blanc sur fond bleu primaire profond
   },
 };

@@ -50,8 +50,14 @@ REACT_APP_API_URL=http://127.0.0.1:8000/api
   - Modification de quantite pretee.
   - **Affectation / Partage multi-vehicules :** Possibilite d'affecter l'outil deja detenu par le mecanicien a un autre vehicule en cours de reparation, afin d'appliquer la facturation sans sortir d'outil physique supplementaire du magasin.
 
-### 2. Notifications Push et Sidebar Mobile
-- `NotificationBell.jsx` : Remplacement du dropdown par une **Sidebar Offcanvas** latérale (venant de la droite) prenant 80% de la largeur sur mobile, avec backdrop semi-transparent, fermeture au clic exterieur ou via bouton dedie, consultation sans debordement et lien direct vers les fiches atelier.
+### 2. Notifications Push, Sidebar Mobile et Accessibilite Visuelle
+- `NotificationBell.jsx` : 
+  - **Sidebar Offcanvas Responsive :** Remplacement de l'ancien dropdown par un volet latéral fluide (droite), occupant 80% de la largeur d'écran sur smartphone (min 290px, max 420px sur PC), avec backdrop et fermeture intuitive.
+  - **Alignement et Ergonomie :** En-tête sur 2 rangées aérées évitant tout chevauchement de boutons ou de textes sur petits écrans :
+    - Rangée 1 : Cloche, titre "Notifications", badge compteur et bouton de fermeture `btn-close`.
+    - Rangée 2 : Onglets de filtrage par pastilles ("Toutes" / "Non lues") et action globale "Tout lire".
+  - **Contraste Élevé Dark & Light (WCAG) :** Utilisation des classes sémantiques Bootstrap 5.3 (`bg-*-subtle text-*-emphasis border-*-subtle`) garantissant un contraste lisible quel que soit le thème actif, évitant les textes délavés en mode sombre ou jaunâtres en mode clair.
+  - **Toasts Globaux (`ToastGlobal.js`, `ToastConfig.js`) :** Boutons de fermeture à contraste garanti (`btn-close-white` sur fonds sombres, sombre sur fond jaune), contrainte de largeur maximale responsive et overlay non bloquant (`pointer-events: none`).
 
 ### 3. Suppression du Prix Fixe d'Entree
 - Le champ "Prix fixe d'entree" (prise en charge) a ete retire de la page des parametres generaux (`Parametres.js`).
@@ -79,10 +85,11 @@ Des tests unitaires et d'integration valident les fonctionnalites critiques :
 - `OutilForm.test.js` : Comportement dynamique du formulaire des outils speciaux (activation tarif horaire, validations).
 - `OutilsTable.test.js` : Affichage conforme des badges d'outils speciaux et des tarifs horaires.
 - `PretsOutilsTable.test.js` : Rendu du tableau des prets, outils speciaux au chrono et prets partages.
+- `EditPretModal.test.js` : Modification de pret et affectation multi-vehicules.
+- `NotificationBell.test.js` : Sidebar Offcanvas, onglets de filtrage et contrastes semantiques Bootstrap 5.3.
 
 ```bash
 # Executer l'ensemble de la batterie de tests
-pnpm test --watchAll=false
-# ou
-node ./node_modules/react-scripts/scripts/test.js --watchAll=false
+node ./node_modules/react-scripts/bin/react-scripts.js test --watchAll=false
 ```
+
