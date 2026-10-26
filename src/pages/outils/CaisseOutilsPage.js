@@ -143,12 +143,13 @@ const CaisseOutilsPage = () => {
         pret={pretToRestituer}
       />
 
-      {/* Modal de modification de la quantité */}
+      {/* Modal de modification de la quantité et affectation multi-véhicules */}
       <EditPretModal
         show={Boolean(pretToEdit)}
         onClose={() => setPretToEdit(null)}
         onSave={handleSaveEdit}
         pret={pretToEdit}
+        reparations={reparations}
         actionLoading={actionLoading}
       />
     </Layout>

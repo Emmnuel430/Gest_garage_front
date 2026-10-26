@@ -169,10 +169,14 @@ export const useCaisseOutils = () => {
     [fetchData, showToast],
   );
 
-  // Action : Modifier la quantité d'un prêt
+  // Action : Modifier un prêt (quantité et/ou affectation à un autre véhicule)
   const executeEditQuantite = useCallback(
-    async (pretId, quantite) => {
-      if (!pretId || quantite < 1) return { success: false };
+    async (pretId, payload) => {
+      if (!pretId) return { success: false };
+      const body =
+        typeof payload === "object"
+          ? payload
+          : { quantite_pretee: payload };
       setActionLoading(true);
       try {
         const response = await fetchWithToken(
@@ -180,7 +184,7 @@ export const useCaisseOutils = () => {
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ quantite_pretee: quantite }),
+            body: JSON.stringify(body),
           },
         );
         const data = await response.json();

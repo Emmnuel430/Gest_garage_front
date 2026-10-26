@@ -142,6 +142,76 @@ const PretOutilForm = ({
     [isDarkMode],
   );
 
+  const mecanicienOptions = useMemo(() => {
+    return (mecaniciens || []).map((m) => ({
+      value: String(m.id),
+      label: `${m.prenom} ${m.nom?.toUpperCase()} (${m.type || "Général"})`,
+      mecanicien: m,
+    }));
+  }, [mecaniciens]);
+
+  const selectedMecanicienOption = useMemo(() => {
+    return (
+      mecanicienOptions.find(
+        (opt) => String(opt.value) === String(selectedMecanicien),
+      ) || null
+    );
+  }, [mecanicienOptions, selectedMecanicien]);
+
+  const formatMecanicienOptionLabel = ({ mecanicien }) => (
+    <div className="d-flex align-items-center justify-content-between py-1">
+      <div>
+        <i className="fas fa-user-gear me-2 text-primary"></i>
+        <strong>
+          {mecanicien?.prenom} {mecanicien?.nom?.toUpperCase()}
+        </strong>
+      </div>
+      <span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle small">
+        {mecanicien?.type || "Général"}
+      </span>
+    </div>
+  );
+
+  const reparationOptions = useMemo(() => {
+    return (mechanicReparations || []).map((rep) => ({
+      value: String(rep.id),
+      label: `${rep?.reception?.vehicule?.immatriculation || "N/A"} — ${rep?.reception?.vehicule?.marque || ""} ${rep?.reception?.vehicule?.modele || ""} (Motif : ${rep?.reception?.motif_visite || rep?.description || "En cours"})`,
+      reparation: rep,
+    }));
+  }, [mechanicReparations]);
+
+  const selectedReparationOption = useMemo(() => {
+    return (
+      reparationOptions.find(
+        (opt) => String(opt.value) === String(selectedReparation),
+      ) || null
+    );
+  }, [reparationOptions, selectedReparation]);
+
+  const formatReparationOptionLabel = ({ reparation }) => {
+    const vehicule = reparation?.reception?.vehicule;
+    const motif =
+      reparation?.reception?.motif_visite ||
+      reparation?.description ||
+      "En cours";
+    return (
+      <div className="d-flex align-items-center justify-content-between py-1 flex-wrap gap-1">
+        <div>
+          <span className="badge bg-dark border text-white font-monospace text-uppercase me-2 px-2 py-1">
+            <i className="fas fa-car me-1 text-light"></i>
+            {vehicule?.immatriculation || "N/A"}
+          </span>
+          <strong className="text-body">
+            {vehicule?.marque || ""} {vehicule?.modele || ""}
+          </strong>
+        </div>
+        <span className="text-muted small">
+          Motif : {motif}
+        </span>
+      </div>
+    );
+  };
+
   const outilOptions = useMemo(() => {
     return outils.map((o) => ({
       value: o.id,
@@ -290,27 +360,26 @@ const PretOutilForm = ({
         <Collapse in={showPretForm}>
           <div id="pretFormCollapse">
             <div className="row g-3">
-              {/* 1. QUI : Mécanicien */}
+              {/* 1. QUI : Mécanicien (React Select) */}
               <div className="col-md-6">
                 <label className="form-label text-primary small fw-bold">
                   <span className="badge bg-primary me-2">1</span>
                   Sélectionner le Mécanicien{" "}
                   <span className="text-danger">*</span>
                 </label>
-                <select
-                  className="form-select border-secondary-subtle"
-                  value={selectedMecanicien}
-                  onChange={(e) => setSelectedMecanicien(e.target.value)}
-                >
-                  <option value="">
-                    -- 1. Choisir le mécanicien demandeur --
-                  </option>
-                  {mecaniciens.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.prenom} {m.nom?.toUpperCase()} ({m.type || "Général"})
-                    </option>
-                  ))}
-                </select>
+                <Select
+                  className="bg-body"
+                  classNamePrefix="select"
+                  options={mecanicienOptions}
+                  value={selectedMecanicienOption}
+                  onChange={(opt) => setSelectedMecanicien(opt ? opt.value : "")}
+                  isClearable
+                  placeholder="-- Choisir ou rechercher le mécanicien demandeur --"
+                  formatOptionLabel={formatMecanicienOptionLabel}
+                  theme={customSelectTheme}
+                  styles={customSelectStyles}
+                  noOptionsMessage={() => "Aucun mécanicien trouvé"}
+                />
                 {currentMecanicien && (
                   <div className="form-text small text-success mt-1">
                     <i className="fas fa-user-check me-1"></i>
@@ -323,40 +392,36 @@ const PretOutilForm = ({
                 )}
               </div>
 
-              {/* 2. SUR QUOI : Véhicule lié au mécanicien */}
+              {/* 2. SUR QUOI : Véhicule lié au mécanicien (React Select) */}
               <div className="col-md-6">
                 <label className="form-label text-primary small fw-bold">
                   <span className="badge bg-primary me-2">2</span>
                   Véhicule concerné (assigné à ce mécanicien){" "}
                   <span className="text-danger">*</span>
                 </label>
-                <select
-                  className={`form-select border-secondary-subtle ${!selectedMecanicien ? "bg-light-subtle" : ""}`}
-                  value={selectedReparation}
-                  onChange={(e) => setSelectedReparation(e.target.value)}
-                  disabled={!selectedMecanicien || loadingReparations}
-                >
-                  <option value="">
-                    {!selectedMecanicien
-                      ? "⚠️ Sélectionnez d'abord le mécanicien à l'étape 1"
+                <Select
+                  className="bg-body"
+                  classNamePrefix="select"
+                  options={reparationOptions}
+                  value={selectedReparationOption}
+                  onChange={(opt) => setSelectedReparation(opt ? opt.value : "")}
+                  isDisabled={!selectedMecanicien || loadingReparations}
+                  isLoading={loadingReparations}
+                  isClearable
+                  placeholder={
+                    !selectedMecanicien
+                      ? "Sélectionnez d'abord le mécanicien à l'étape 1"
                       : loadingReparations
                         ? "Chargement des véhicules en cours..."
                         : mechanicReparations.length === 0
                           ? "Aucun véhicule en cours pour ce mécanicien"
-                          : "-- 2. Choisir le véhicule en réparation --"}
-                  </option>
-                  {mechanicReparations.map((rep) => (
-                    <option key={rep.id} value={rep.id}>
-                      {rep?.reception?.vehicule?.immatriculation || "N/A"} —{" "}
-                      {rep?.reception?.vehicule?.marque || ""}{" "}
-                      {rep?.reception?.vehicule?.modele || ""} (Motif :{" "}
-                      {rep?.reception?.motif_visite ||
-                        rep?.description ||
-                        "En cours"}
-                      )
-                    </option>
-                  ))}
-                </select>
+                          : "-- Choisir ou rechercher le véhicule en réparation --"
+                  }
+                  formatOptionLabel={formatReparationOptionLabel}
+                  theme={customSelectTheme}
+                  styles={customSelectStyles}
+                  noOptionsMessage={() => "Aucun véhicule en cours trouvé"}
+                />
 
                 {selectedMecanicien &&
                   !loadingReparations &&

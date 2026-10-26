@@ -12,24 +12,33 @@ const ToastGlobal = () => {
 
   return (
     <div
-      className="position-fixed top-0 start-50 translate-middle-x mt-4 p-3"
-      style={{ zIndex: 1055 }} // 1055 est le z-index standard Bootstrap pour les overlays
+      className="position-fixed top-0 start-50 translate-middle-x mt-3 px-3"
+      style={{
+        zIndex: 1085,
+        maxWidth: "min(520px, calc(100vw - 24px))",
+        width: "100%",
+        pointerEvents: "none",
+      }}
     >
       <div
-        className={`toast show align-items-center border-0 shadow-lg ${config.colorClass}`}
+        className={`toast show align-items-center rounded-3 p-1 ${config.colorClass}`}
         role="alert"
         aria-live="assertive"
         aria-atomic="true"
+        style={{ pointerEvents: "auto" }}
       >
-        <div className="d-flex">
-          <div className="toast-body d-flex align-items-center fw-medium">
-            <i className={`${config.icon} me-3`}></i>
-            <span>{toast.message}</span>
+        <div className="d-flex align-items-center justify-content-between py-1 px-2">
+          <div className="toast-body d-flex align-items-center fw-medium py-1 px-2 text-break">
+            <i className={`${config.icon} fs-5 me-2 flex-shrink-0`}></i>
+            <span style={{ fontSize: "0.88rem", lineHeight: "1.4" }}>
+              {toast.message}
+            </span>
           </div>
           <button
             type="button"
-            className="btn-close me-2 m-auto"
-            data-bs-theme={config.btnTheme}
+            className={`btn-close flex-shrink-0 ms-2 me-1 ${
+              config.isDarkBtn ? "btn-close-white" : ""
+            }`}
             onClick={() => setToast({ ...toast, show: false })}
             aria-label="Fermer"
           ></button>
